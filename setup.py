@@ -6,4 +6,6 @@ setup(
     packages=["joj.tiger"],
     include_package_data=True,
     install_requires=[],
+    setup_requires=["pbr"],
+    pbr=True,
 )
