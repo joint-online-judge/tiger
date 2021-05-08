@@ -9,6 +9,8 @@ The new generation of JOJ Judge Daemon. "Tiger" is named after "Tiger Machine", 
 
 ## Installation
 
+Install <https://github.com/joint-online-judge/autograder-sandbox> first.
+
 ### Setup venv (Optional)
 
 ```bash
