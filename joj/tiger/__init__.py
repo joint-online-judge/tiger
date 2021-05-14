@@ -1,15 +1,14 @@
 import asyncio
-import json
 import os
 from datetime import datetime
 from typing import Any, Dict
 
-import websockets
+import aiohttp
 
 os.environ.setdefault("FORKED_BY_MULTIPROCESSING", "1")
 
 from autograder_sandbox import AutograderSandbox
-from celery import Celery, current_task
+from celery import Celery
 
 celery_app = Celery("tasks", backend="rpc://", broker="pyamqp://localhost//")
 
@@ -25,14 +24,13 @@ celery_app.conf.update(
 
 async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
     print("compile_task", record_dict, base_url)
-    record_url = base_url + "/ws"
-    case_url = base_url + "/cases/ws"
+    record_url = base_url + "/http"
+    case_url = base_url + "/cases/http"
     total_time_ms = 0
     total_memory_kb = 0
     total_score = 0
     judge_at = datetime.utcnow()
-    tasks = []
-    async with websockets.connect(case_url) as websocket:
+    async with aiohttp.ClientSession() as session:
         with AutograderSandbox() as sandbox:
             for i, case in enumerate(record_dict["cases"]):
                 result = sandbox.run_command(["echo", "1"])
@@ -43,7 +41,6 @@ async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
                 total_time_ms += time_ms
                 total_memory_kb += memory_kb
                 case_res = {
-                    "done": i + 1 == len(record_dict["cases"]),
                     "index": i,
                     "result": {
                         "status": 1,
@@ -55,22 +52,17 @@ async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
                         "stderr": result.stderr.read().decode(),
                     },
                 }
-                print(f"create_task case {i}")
-                tasks.append(asyncio.create_task(websocket.send(json.dumps(case_res))))
-    await asyncio.gather(*tasks)
-    async with websockets.connect(record_url) as websocket:
+                print(f"await case {i}")
+                await session.post(case_url, json=case_res)
         records_res = {
-            "done": True,
-            "result": {
-                "status": 1,
-                "score": total_score,
-                "time_ms": total_time_ms,
-                "memory_kb": total_memory_kb,
-                "judge_at": str(judge_at),
-            },
+            "status": 1,
+            "score": total_score,
+            "time_ms": total_time_ms,
+            "memory_kb": total_memory_kb,
+            "judge_at": str(judge_at),
         }
-        print(f"await       record")
-        await websocket.send(json.dumps(records_res))
+        print(f"await record")
+        await session.post(record_url, json=records_res)
 
 
 @celery_app.task(name="joj.tiger.compile")
