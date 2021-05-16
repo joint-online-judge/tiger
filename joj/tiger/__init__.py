@@ -4,11 +4,11 @@ from datetime import datetime
 from typing import Any, Dict
 
 import aiohttp
+from autograder_sandbox import AutograderSandbox
+from celery import Celery, bootsteps, current_app
+from celery.bin import Option
 
 os.environ.setdefault("FORKED_BY_MULTIPROCESSING", "1")
-
-from autograder_sandbox import AutograderSandbox
-from celery import Celery
 
 celery_app = Celery("tasks", backend="rpc://", broker="pyamqp://localhost//")
 
@@ -20,9 +20,20 @@ celery_app.conf.update(
         ),
     }
 )
+celery_app.user_options["preload"].add(Option("-j", dest="jwt"))
+
+
+class ConfigBootstep(bootsteps.Step):
+    def __init__(self, worker, jwt=None, **options):
+        access_jwt = jwt[0]
+        celery_app.conf["HEADERS"] = {"Authorization": f"Bearer {access_jwt}"}
+
+
+celery_app.steps["worker"].add(ConfigBootstep)
 
 
 async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
+    HEADERS = current_app.conf.get("HEADERS")
     print("compile_task", record_dict, base_url)
     record_url = base_url + "/http"
     case_url = base_url + "/cases/http"
@@ -53,7 +64,10 @@ async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
                     },
                 }
                 print(f"await case {i}")
-                await session.post(case_url, json=case_res)
+                async with session.post(
+                    case_url, json=case_res, headers=HEADERS
+                ) as resp:
+                    print(await resp.text())
         records_res = {
             "status": 1,
             "score": total_score,
@@ -62,7 +76,8 @@ async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
             "judge_at": str(judge_at),
         }
         print(f"await record")
-        await session.post(record_url, json=records_res)
+        async with session.post(record_url, json=records_res, headers=HEADERS) as resp:
+            print(await resp.text())
 
 
 @celery_app.task(name="joj.tiger.compile")

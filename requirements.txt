@@ -1,2 +1,4 @@
 aiohttp>=3.7.4.post0
-celery>=5.0.5
+celery==4.4.7
+flower==0.9.7
+pyjwt<2.0.0

@@ -18,9 +18,17 @@ python3 -m venv env
 source env/Scripts/activate
 ```
 
+(get judger JWT from horse)
+
 ```bash
 pip3 install -e .
-python3 -m joj.tiger # or just press F5 in VS Code
+python3 -m joj.tiger <JWT>
+```
+
+### Run Flower (Optional)
+
+```bash
+flower
 ```
 
 ### For developers
