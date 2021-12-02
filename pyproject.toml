@@ -1,0 +1,25 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+
+[tool.poetry]
+authors = ["JOJ Dev Team <liuyh615@126.com>"]
+description = "JOJ Judge Daemon"
+license = "MIT"
+name = "joj-tiger"
+packages = [
+    { include = "joj" },
+]
+repository = "https://github.com/joint-online-judge/tiger/"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+aiohttp = "^3.8.1"
+autograder-sandbox = {git = "https://github.com/joint-online-judge/autograder-sandbox.git", branch = "develop" }
+celery = "^5.2.1"
+flower = "^1.0.0"
+horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git"}
+PyJWT = "^2.3.0"
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]

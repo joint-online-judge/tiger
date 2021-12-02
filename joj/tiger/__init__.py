@@ -1,12 +1,12 @@
 import asyncio
 import os
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import aiohttp
 from autograder_sandbox import AutograderSandbox
 from celery import Celery, bootsteps, current_app
-from celery.bin import Option
+from click import Option
 
 os.environ.setdefault("FORKED_BY_MULTIPROCESSING", "1")
 
@@ -24,7 +24,9 @@ celery_app.user_options["preload"].add(Option("-j", dest="jwt"))
 
 
 class ConfigBootstep(bootsteps.Step):
-    def __init__(self, worker, jwt=None, **options):
+    def __init__(
+        self, worker: Any, parent: Any, jwt: List[Any], **options: Any
+    ) -> None:
         access_jwt = jwt[0]
         celery_app.conf["HEADERS"] = {"Authorization": f"Bearer {access_jwt}"}
 
@@ -75,7 +77,7 @@ async def compile_task_impl(record_dict: Dict[str, Any], base_url: str) -> None:
             "memory_kb": total_memory_kb,
             "judge_at": str(judge_at),
         }
-        print(f"await record")
+        print("await record")
         async with session.post(record_url, json=records_res, headers=HEADERS) as resp:
             print(await resp.text())
 
