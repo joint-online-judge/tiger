@@ -16,10 +16,13 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 aiohttp = "^3.8.1"
 autograder-sandbox = {git = "https://github.com/joint-online-judge/autograder-sandbox.git", branch = "develop" }
-celery = "^5.2.1"
-flower = "^1.0.0"
-horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git"}
+celery = {extras = ["redis"], version = "^5.2.1"}
+horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git", branch = "master"}
+loguru = "^0.5.3"
+pydantic-universal-settings = "^0.1.4"
 PyJWT = "^2.3.0"
 python = "^3.8"
+tenacity = "^8.0.1"
+watchgod = "^0.7"
 
 [tool.poetry.dev-dependencies]
