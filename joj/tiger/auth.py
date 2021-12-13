@@ -12,8 +12,8 @@ from joj.tiger.errors import TigerError
 
 
 @retry(stop=stop_after_attempt(3))
-async def get_access_token() -> str:
-    auth_api = AuthApi(get_horse_client())
+async def get_access_token(base_url: str) -> str:
+    auth_api = AuthApi(get_horse_client(base_url))
     response: AuthTokensResp = await auth_api.v1_login(
         grant_type="password",
         username=settings.horse_username,

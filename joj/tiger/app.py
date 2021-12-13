@@ -1,37 +1,87 @@
 # import aiohttp
 # import psutil
 # from autograder_sandbox import AutograderSandbox
-from celery import Celery  # , bootsteps, current_app
+import asyncio
+import logging
+import platform
+from typing import Any, Dict
+
+from celery import Celery, Task  # , bootsteps, current_app
+from celery.signals import setup_logging
 
 # from click import Option
-# from loguru import logger
+from loguru import logger
 from pydantic_universal_settings import init_settings
+from pydantic_universal_settings.cli import async_command
 
-# from joj.tiger.auth import get_access_token
+from joj.tiger.auth import get_access_token
 from joj.tiger.config import AllSettings
+from joj.tiger.toolchains import get_toolchains_config
 
-# os.environ.setdefault("FORKED_BY_MULTIPROCESSING", "1")
+
+class InterceptHandler(logging.Handler):
+    def emit(self, record: logging.LogRecord) -> None:
+        # Get corresponding Loguru level if it exists
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        # Find caller from where originated the logged message
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back  # type: ignore
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
+
+
+@setup_logging.connect
+def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
+    logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
+
+
 settings = init_settings(AllSettings, overwrite=False)
+backend_url = "redis://:{}@{}:{}/{}".format(
+    settings.redis_password,
+    settings.redis_host,
+    settings.redis_port,
+    settings.redis_db_index,
+)
+broker_url = "amqp://{}:{}@{}:{}/{}".format(
+    settings.rabbitmq_username,
+    settings.rabbitmq_password,
+    settings.rabbitmq_host,
+    settings.rabbitmq_port,
+    settings.rabbitmq_vhost,
+)
 
 app = Celery(
     "tasks",
-    backend="rpc://",
-    broker="redis://:{}@{}:{}/{}".format(
-        settings.redis_password,
-        settings.redis_host,
-        settings.redis_port,
-        settings.redis_db_index,
-    ),
+    backend=backend_url,
+    broker=broker_url,
 )
+
+# initialize toolchains supported
+toolchains_config = get_toolchains_config()
 
 app.conf.update(
     {
+        # "task_default_queue": "joj.tiger",
         "result_persistent": False,
-        "task_routes": (
-            [("joj.tiger.*", {"queue": "tiger"}), ("joj.horse.*", {"queue": "horse"})],
-        ),
+        "task_acks_late": True,
+        # "task_routes": (
+        #     [
+        #         ("joj.tiger.*", {"queue": "joj.tiger"}),
+        #         # ("joj.horse.*", {"queue": "horse"}),
+        #     ],
+        # ),
     }
 )
+
+
 # logger.info(app.conf)
 # asyncio.run(get_access_token())
 
@@ -97,13 +147,39 @@ app.conf.update(
 #             print(await resp.text())
 #
 #
-# @app.task(name="joj.tiger.compile")
-# def compile_task(record_dict: Dict[str, Any], base_url: str) -> None:
-#     asyncio.run(compile_task_impl(record_dict, base_url))
+@app.task(name="joj.tiger.compile", bind=True)
+@async_command
+async def compile_task(self: Task, record_dict: Dict[str, Any], base_url: str) -> None:
+    logger.info(self)
+    logger.info(record_dict)
+    try:
+        access_token = await get_access_token(base_url)
+        print(access_token)
+    except Exception as e:
+        logger.error(e)
+        logger.info(self.request.delivery_info)
+        # await asyncio.sleep(5)
+        # raise Reject("login failed", requeue=True)
+
+        self.retry(countdown=1)
+        await asyncio.sleep(5)
+
+        # else:
+        #
+        #     raise TaskError()
 
 
 def main() -> None:
-    app.worker_main(argv=["worker", f"--concurrency={settings.workers}"])
+    toolchains_config.pull_images()
+    argv = [
+        "worker",
+        f"--concurrency={settings.workers}",
+        "-Q",
+        ",".join(toolchains_config.generate_queues()),
+    ]
+    if platform.system() == "Windows":
+        argv += ["-P", "solo"]
+    app.worker_main(argv=argv)
 
 
 if __name__ == "__main__":

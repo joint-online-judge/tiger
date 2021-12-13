@@ -1,0 +1,20 @@
+images:
+  default:
+    image: ghcr.io/joint-online-judge/buildpack-deps:focal
+  linter:
+    image: ghcr.io/joint-online-judge/linter:focal
+  matlab:
+    image: mathworks/matlab:r2021b
+queues:
+  default:
+    images:
+      - default
+      - linter
+  matlab:
+    images:
+      - matlab
+  custom:
+    images:
+      - default
+      - linter
+    build: true
