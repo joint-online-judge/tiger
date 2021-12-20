@@ -1,21 +1,15 @@
-# import aiohttp
-# import psutil
-# from autograder_sandbox import AutograderSandbox
-import asyncio
 import logging
 import platform
 from typing import Any, Dict
 
-from celery import Celery, Task  # , bootsteps, current_app
+from celery import Celery, Task
 from celery.signals import setup_logging
-
-# from click import Option
 from loguru import logger
 from pydantic_universal_settings import init_settings
 from pydantic_universal_settings.cli import async_command
 
-from joj.tiger.auth import get_access_token
 from joj.tiger.config import AllSettings
+from joj.tiger.task import TigerTask
 from joj.tiger.toolchains import get_toolchains_config
 
 
@@ -150,23 +144,13 @@ app.conf.update(
 @app.task(name="joj.tiger.compile", bind=True)
 @async_command
 async def compile_task(self: Task, record_dict: Dict[str, Any], base_url: str) -> None:
-    logger.info(self)
-    logger.info(record_dict)
+    task = TigerTask(self, record_dict, base_url)
     try:
-        access_token = await get_access_token(base_url)
-        print(access_token)
+        await task.execute()
     except Exception as e:
-        logger.error(e)
-        logger.info(self.request.delivery_info)
-        # await asyncio.sleep(5)
-        # raise Reject("login failed", requeue=True)
-
-        self.retry(countdown=1)
-        await asyncio.sleep(5)
-
-        # else:
-        #
-        #     raise TaskError()
+        await task.clean()
+        raise e
+    await task.clean()
 
 
 def main() -> None:
