@@ -38,12 +38,7 @@ def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
 
 
 settings = init_settings(AllSettings, overwrite=False)
-backend_url = "redis://:{}@{}:{}/{}".format(
-    settings.redis_password,
-    settings.redis_host,
-    settings.redis_port,
-    settings.redis_db_index,
-)
+backend_url = "rpc://"
 broker_url = "amqp://{}:{}@{}:{}/{}".format(
     settings.rabbitmq_username,
     settings.rabbitmq_password,

@@ -15,6 +15,7 @@ version = "0.1.0"
 
 [tool.poetry.dependencies]
 aiohttp = "^3.8.1"
+aioredlock = "^0.7.2"
 autograder-sandbox = {git = "https://github.com/joint-online-judge/autograder-sandbox.git", branch = "develop" }
 celery = {extras = ["redis"], version = "^5.2.1"}
 docker = "^5.0.3"
