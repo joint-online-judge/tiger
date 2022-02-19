@@ -21,6 +21,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        uses: docker/metadata-action@v3
+        id: meta
+        with:
+          images: ghcr.io/joint-online-judge/horse
+          flavor: |
+            latest=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      - name: Set output
+        id: output
+        run: |
+          TAGS="${{ steps.meta.outputs.tags }}"
+          echo "$TAGS"
+          TAG="${TAGS%%$'\n'*}"
+          echo "$TAG"
+          echo "::set-output name=tag::$TAG"
       - name: Build and push Docker image
         id: docker_build
         uses: docker/build-push-action@v2
