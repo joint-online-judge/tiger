@@ -25,7 +25,7 @@ jobs:
         uses: docker/metadata-action@v3
         id: meta
         with:
-          images: ghcr.io/joint-online-judge/horse
+          images: ghcr.io/joint-online-judge/tiger
           flavor: |
             latest=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       - name: Set output
