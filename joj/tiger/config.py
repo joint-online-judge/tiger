@@ -1,6 +1,6 @@
 from os import path
 from pathlib import Path
-from typing import Type, Union
+from typing import Type
 
 from pydantic_universal_settings import (
     BaseSettings,
@@ -44,7 +44,7 @@ class BaseConfig(BaseSettings):
     queues_type: str = "official"
 
 
-GeneratedSettings: Type[Union[BaseConfig]] = generate_all_settings(
+GeneratedSettings: Type[BaseConfig] = generate_all_settings(
     mixins=[EnvFileMixin, CLIWatchMixin]
 )
 
