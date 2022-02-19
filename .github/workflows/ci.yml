@@ -42,7 +42,7 @@ jobs:
         with:
           context: .
           load: true
-          tags: ${{ env.TEST_TAG }}
+          tags: master
         # with:
         #   context: .
         #   # push: true
@@ -53,4 +53,4 @@ jobs:
         #   cache-to: type=gha,mode=max
       - name: Run container
         run: |
-          docker run --rm ${{ steps.output.outputs.tag }}
+          docker run --rm master
