@@ -148,6 +148,12 @@ async def compile_task(self: Task, record_dict: Dict[str, Any], base_url: str) -
     await task.clean()
 
 
+@app.task(name="joj.tiger.empty", bind=True)
+@async_command
+async def empty_task() -> None:
+    pass
+
+
 def main() -> None:
     toolchains_config.pull_images()
     argv = [
