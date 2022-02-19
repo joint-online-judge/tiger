@@ -19,8 +19,8 @@ class BaseConfig(BaseSettings):
 
     # horse_host: str = "localhost"
     # horse_port: int = 34765
-    horse_username: str
-    horse_password: str
+    horse_username: str = ""
+    horse_password: str = ""
 
     # redis config
     redis_host: str = "localhost"

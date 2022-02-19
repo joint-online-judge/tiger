@@ -10,14 +10,14 @@ from joj.tiger.config import settings
 
 @cli.command()
 def main() -> None:
-    from joj.tiger.app import app
+    from joj.tiger.app import main
 
     if platform.system() == "Windows" and settings.workers != 1:
         print("Now only solo mode is supported on Windows, so workers must be set to 1")
         exit(-1)
 
     if not settings.debug or settings.workers != 1:
-        app.main()
+        main()
     else:
         p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
         for changes in watch("joj/tiger"):
