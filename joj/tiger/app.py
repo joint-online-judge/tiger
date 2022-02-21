@@ -141,6 +141,12 @@ async def empty_task(self: Task) -> None:
     print(f"{self=}")
 
 
+@app.task(name="joj.tiger.add", bind=True)
+def add_task(self: Task, a: int, b: int) -> int:
+    print(f"{self=}")
+    return a + b
+
+
 def main() -> None:
     toolchains_config.pull_images()
     argv = [
