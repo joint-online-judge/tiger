@@ -36,13 +36,15 @@ jobs:
           TAG="${TAGS%%$'\n'*}"
           echo "$TAG"
           echo "::set-output name=tag::$TAG"
-      - name: Build and push Docker image
+      - name: Build and push Docker image with PyTest
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
           load: true
-          tags: master
+          tags: test
+          build-args: |
+            PYTEST=1
         # with:
         #   context: .
         #   # push: true
@@ -54,4 +56,4 @@ jobs:
       - name: Run container
         run: |
           docker ps
-          docker run --rm master pytest -svv
+          docker run --rm test pytest -svv
