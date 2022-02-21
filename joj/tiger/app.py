@@ -38,20 +38,7 @@ def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
 
 
 settings = init_settings(AllSettings, overwrite=False)
-backend_url = "rpc://"
-broker_url = "amqp://{}:{}@{}:{}/{}".format(
-    settings.rabbitmq_username,
-    settings.rabbitmq_password,
-    settings.rabbitmq_host,
-    settings.rabbitmq_port,
-    settings.rabbitmq_vhost,
-)
-
-app = Celery(
-    "tasks",
-    backend=backend_url,
-    broker=broker_url,
-)
+app = Celery("tasks", backend=settings.backend_url, broker=settings.broker_url)
 
 # initialize toolchains supported
 toolchains_config = get_toolchains_config()
@@ -150,8 +137,8 @@ async def compile_task(self: Task, record_dict: Dict[str, Any], base_url: str) -
 
 @app.task(name="joj.tiger.empty", bind=True)
 @async_command
-async def empty_task() -> None:
-    pass
+async def empty_task(self: Task) -> None:
+    print(f"{self=}")
 
 
 def main() -> None:

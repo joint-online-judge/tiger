@@ -53,4 +53,5 @@ jobs:
         #   cache-to: type=gha,mode=max
       - name: Run container
         run: |
-          docker run --rm master
+          docker ps
+          docker run --rm master pytest -svv
