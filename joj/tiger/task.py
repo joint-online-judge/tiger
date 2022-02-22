@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 from uuid import UUID, uuid4
 
 from celery import Task
@@ -8,6 +8,13 @@ from loguru import logger
 
 from joj.tiger import errors
 from joj.tiger.horse_apis import HorseClient
+from joj.tiger.schemas import (
+    CompletedCommand,
+    ExecuteResult,
+    ExecuteStatus,
+    SubmitResult,
+    SubmitStatus,
+)
 
 
 class TigerTask:
@@ -45,19 +52,51 @@ class TigerTask:
     async def fetch_record(self) -> None:
         pass
 
-    async def compile(self) -> None:
-        pass
+    async def compile(self) -> CompletedCommand:
+        return CompletedCommand(
+            return_code=0,
+            stdout=b"",
+            stderr="",
+            timed_out=False,
+            stdout_truncated=False,
+            stderr_truncated=False,
+            time=0,
+            memory=0,
+        )
+
+    async def execute(self) -> List[ExecuteResult]:
+        return [
+            ExecuteResult(
+                status=ExecuteStatus.accepted,
+                completed_command=CompletedCommand(
+                    return_code=0,
+                    stdout=b"",
+                    stderr="",
+                    timed_out=False,
+                    stdout_truncated=False,
+                    stderr_truncated=False,
+                    time=0,
+                    memory=0,
+                ),
+            )
+        ]
 
     async def clean(self) -> None:
         pass
 
-    async def execute(self) -> None:
+    async def submit(self) -> SubmitResult:
         try:
-            await self.login()
-            await self.claim()
-            await self.fetch_problem_config()
-            await self.fetch_record()
-            await self.compile()
+            # await self.login()
+            # await self.claim()
+            # await self.fetch_problem_config()
+            # await self.fetch_record()
+            compile_result = await self.compile()
+            execute_results = await self.execute()
+            return SubmitResult(
+                submit_status=SubmitStatus.accepted,
+                compile_result=compile_result,
+                execute_results=execute_results,
+            )
         except errors.WorkerRejectError:
             raise Reject("WorkerRejectError", requeue=True)
         except errors.RetryableError:
@@ -65,7 +104,7 @@ class TigerTask:
         except Exception as e:
             logger.exception(e)
             # fail the task
-            pass
+            return SubmitResult(submit_status=SubmitStatus.system_error)
         # logger.info(self)
         # logger.info(record_dict)
         # try:

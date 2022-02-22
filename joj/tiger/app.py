@@ -123,16 +123,19 @@ app.conf.update(
 #             print(await resp.text())
 #
 #
-@app.task(name="joj.tiger.compile", bind=True)
+@app.task(name="joj.tiger.submit", bind=True)
 @async_command
-async def compile_task(self: Task, record_dict: Dict[str, Any], base_url: str) -> None:
+async def submit_task(
+    self: Task, record_dict: Dict[str, Any], base_url: str
+) -> Dict[str, Any]:
     task = TigerTask(self, record_dict, base_url)
     try:
-        await task.execute()
+        submit_result = await task.submit()
     except Exception as e:
         await task.clean()
         raise e
     await task.clean()
+    return submit_result.json()
 
 
 @app.task(name="joj.tiger.empty", bind=True)
