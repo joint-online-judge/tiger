@@ -24,7 +24,7 @@ python3 -m venv env
 source env/Scripts/activate
 ```
 
-(get judger JWT from horse)
+(get judger JWT from tiger)
 
 ```bash
 pip3 install -e .
