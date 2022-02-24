@@ -12,12 +12,11 @@ import (
 )
 
 func main() {
-	shares := uint64(100)
-	control, err := cgroups.New(cgroups.V1, cgroups.StaticPath("/test"), &specs.LinuxResources{
-		CPU: &specs.LinuxCPU{
-			Shares: &shares,
-		},
-	})
+	control, err := cgroups.New(
+		cgroups.V1,
+		cgroups.StaticPath("/joj.tiger"),
+		&specs.LinuxResources{},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -38,12 +37,14 @@ func main() {
 		panic(err)
 	}
 	pid := cmd.Process.Pid
+	fmt.Printf("pid: %d\n", pid)
 	if err := control.Add(cgroups.Process{Pid: pid}); err != nil {
 		panic(err)
 	}
 	go func(done chan bool) {
 		if err = cmd.Wait(); err != nil {
-			panic(err)
+			fmt.Printf("%s\n", fmt.Sprint(err))
+			return
 		}
 		fmt.Printf("done in %v\n", time.Since(start))
 		done <- true
@@ -55,6 +56,8 @@ func main() {
 	case <-time.After(timeout_ms):
 		fmt.Printf("timeout in %v\n", time.Since(start))
 		cmd.Process.Kill()
-		os.Exit(1)
 	}
+	stats, _ := control.Stat(cgroups.IgnoreNotExist)
+	fmt.Printf("CPU: %v\n", stats.CPU.Usage)
+	fmt.Printf("Memory: %v\n", stats.Memory.Usage)
 }
