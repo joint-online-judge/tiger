@@ -15,7 +15,7 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-type CompletedCommand struct {
+type completedCommand struct {
 	ReturnCode int
 	Stdout     []byte
 	Stderr     []byte
@@ -89,7 +89,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "stdout: %s\n", stdout.String())
 	fmt.Fprintf(os.Stderr, "stderr: %s\n", stderr.String())
 	fmt.Fprintf(os.Stderr, "timed_out: %v\n", timedOut)
-	completedCommand := CompletedCommand{
+	command := completedCommand{
 		ReturnCode: returnCode,
 		Stdout:     stdout.Bytes(),
 		Stderr:     stderr.Bytes(),
@@ -97,7 +97,7 @@ func main() {
 		Time:       stats.CPU.Usage.Total,
 		Memory:     stats.Memory.Usage.Max,
 	}
-	b, err := msgpack.Marshal(&completedCommand)
+	b, err := msgpack.Marshal(&command)
 	if err != nil {
 		panic(err)
 	}
