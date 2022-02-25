@@ -39,30 +39,30 @@ func main() {
 	if err := control.Add(cgroups.Process{Pid: pid}); err != nil {
 		panic(err)
 	}
-	var return_code int
-	exit_code := make(chan int, 1)
+	var returnCode int
+	exitCode := make(chan int, 1)
 	go func(exit_code chan int) {
 		if err = cmd.Wait(); err != nil {
 			exit_code <- err.(*exec.ExitError).ExitCode()
 		} else {
 			exit_code <- 0
 		}
-	}(exit_code)
-	timeout_ms := 1000 * time.Millisecond
-	timed_out := false
+	}(exitCode)
+	timeoutLimit := 1000 * time.Millisecond
+	timedOut := false
 	select {
-	case return_code = <-exit_code:
-	case <-time.After(timeout_ms):
+	case returnCode = <-exitCode:
+	case <-time.After(timeoutLimit):
 		fmt.Printf("timeout in %v\n", time.Since(start))
 		cmd.Process.Kill()
-		return_code = <-exit_code
-		timed_out = true
+		returnCode = <-exitCode
+		timedOut = true
 	}
 	stats, _ := control.Stat(cgroups.IgnoreNotExist)
-	fmt.Printf("return_code: %d\n", return_code)
+	fmt.Printf("return_code: %d\n", returnCode)
 	fmt.Printf("time: %f\n", (float64(stats.CPU.Usage.Total) / 1e9))
 	fmt.Printf("memory: %d\n", stats.Memory.Usage.Max) // Memory.Usage.Max = 0 when killed
 	fmt.Printf("stdout: %s\n", stdout.String())
 	fmt.Printf("stderr: %s\n", stderr.String())
-	fmt.Printf("timed_out: %v\n", timed_out)
+	fmt.Printf("timed_out: %v\n", timedOut)
 }
