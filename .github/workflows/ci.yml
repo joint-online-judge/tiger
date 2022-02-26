@@ -80,4 +80,4 @@ jobs:
           docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "poetry install --no-dev -E test; pytest -svv"
       - name: Run Runner Test
         run: |
-          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "/root/runner ls"
+          docker exec tiger /root/runner ls
