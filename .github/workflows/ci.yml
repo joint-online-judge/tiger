@@ -77,9 +77,20 @@ jobs:
           docker pull ${{ needs.build.outputs.tag }}
       - name: Run PyTest
         run: |
-          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "poetry install --no-dev -E test; pytest -svv"
+          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "poetry install --no-dev -E test; pytest -svv --cov=./ --cov-report=xml"
+          docker cp tiger:/root/coverage.xml .
           docker rm tiger
+      - name: Upload coverage to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
       - name: Run Runner Test
         run: |
-          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "/root/runner ls"
+          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "/root/runner/main ls -lha"
           docker rm tiger
