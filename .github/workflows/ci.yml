@@ -92,5 +92,5 @@ jobs:
           fail_ci_if_error: true
       - name: Run Runner Test
         run: |
-          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "/root/runner/main ls -lha"
+          docker run --name tiger --privileged ${{ needs.build.outputs.tag }} /bin/bash -c "/root/runner/main ls -lha"
           docker rm tiger
