@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
-	"strconv"
+
+	// "os/user"
+	// "strconv"
 	"syscall"
 	"time"
 
@@ -29,10 +30,10 @@ func main() {
 		fmt.Println("usage: main <command>")
 		os.Exit(1)
 	}
-	u, err := user.Lookup(os.Getenv("SUDO_USER"))
-	if err != nil {
-		panic(err)
-	}
+	// u, err := user.Lookup(os.Getenv("SUDO_USER"))
+	// if err != nil {
+	// 	panic(err)
+	// }
 	timeoutMs := 1000
 	control, err := cgroups.New(
 		cgroups.V1,
@@ -46,9 +47,9 @@ func main() {
 	cmd := exec.Command(os.Args[1], os.Args[2:]...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{}
 	// run command as non-root
-	uid, _ := strconv.ParseUint(u.Uid, 10, 32)
-	gid, _ := strconv.ParseUint(u.Gid, 10, 32)
-	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
+	// uid, _ := strconv.ParseUint(u.Uid, 10, 32)
+	// gid, _ := strconv.ParseUint(u.Gid, 10, 32)
+	// cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
