@@ -160,6 +160,8 @@ def main() -> None:
     ]
     if platform.system() == "Windows":
         argv += ["-P", "solo"]
+    if settings.worker_name:
+        argv += ["-n", settings.worker_name]
     app.worker_main(argv=argv)
 
 

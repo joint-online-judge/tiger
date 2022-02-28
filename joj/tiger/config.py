@@ -16,6 +16,7 @@ from pydantic_universal_settings import (
 class BaseConfig(BaseSettings):
     debug: bool = False
     workers: int = 1
+    worker_name: str = ""
 
     # horse_host: str = "localhost"
     # horse_port: int = 34765
