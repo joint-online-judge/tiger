@@ -89,10 +89,10 @@ jobs:
           docker ps
       - name: Test and Generate coverage report
         run: |
-          docker exec `docker ps -q --filter ancestor=${{ needs.build.outputs.tag }}` \
+          docker exec tiger-1 \
             /bin/bash -c "poetry install --no-dev -E test; pytest -svv --cov=./ --cov-report=xml"
-          docker cp tiger:/root/coverage.xml .
-          docker exec `docker ps -q --filter ancestor=${{ needs.build.outputs.tag }}` \
+          docker cp tiger-1:/root/coverage.xml .
+          docker exec tiger-1 \
             /bin/bash -c "/root/runner/main ls -lha"
       - name: Upload coverage to Codacy
         uses: codacy/codacy-coverage-reporter-action@v1
