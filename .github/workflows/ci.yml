@@ -71,15 +71,29 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Pull docker image
+      - name: Checkout joj-deploy-lite repository
+        uses: actions/checkout@v2
+        with:
+          repository: joint-online-judge/joj-deploy-lite
+          path: joj-deploy-lite
+          ref: master
+      - name: Start docker compose
+        env:
+          HORSE_IMAGE: ${{ needs.build.outputs.tag }}
         run: |
-          echo ${{ needs.build.outputs.tag }}
-          docker pull ${{ needs.build.outputs.tag }}
-      - name: Run PyTest
+          echo $HORSE_IMAGE
+          export HORSE_TAG=${HORSE_IMAGE##*:}
+          echo $HORSE_TAG
+          cd joj-deploy-lite
+          bash ./start.sh lite
+          docker ps
+      - name: Test and Generate coverage report
         run: |
-          docker run --name tiger ${{ needs.build.outputs.tag }} /bin/bash -c "poetry install --no-dev -E test; pytest -svv --cov=./ --cov-report=xml"
+          docker exec `docker ps -q --filter ancestor=${{ needs.build.outputs.tag }}` \
+            /bin/bash -c "poetry install --no-dev -E test; pytest -svv --cov=./ --cov-report=xml"
           docker cp tiger:/root/coverage.xml .
-          docker rm tiger
+          docker exec `docker ps -q --filter ancestor=${{ needs.build.outputs.tag }}` \
+            /bin/bash -c "/root/runner/main ls -lha"
       - name: Upload coverage to Codacy
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
@@ -90,7 +104,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-      - name: Run Runner Test
-        run: |
-          docker run --name tiger --privileged ${{ needs.build.outputs.tag }} /bin/bash -c "/root/runner/main ls -lha"
-          docker rm tiger
