@@ -79,11 +79,11 @@ jobs:
           ref: master
       - name: Start docker compose
         env:
-          HORSE_IMAGE: ${{ needs.build.outputs.tag }}
+          TIGER_IMAGE: ${{ needs.build.outputs.tag }}
         run: |
-          echo $HORSE_IMAGE
-          export HORSE_TAG=${HORSE_IMAGE##*:}
-          echo $HORSE_TAG
+          echo $TIGER_IMAGE
+          export TIGER_TAG=${TIGER_IMAGE##*:}
+          echo $TIGER_TAG
           cd joj-deploy-lite
           bash ./start.sh lite
           docker ps
