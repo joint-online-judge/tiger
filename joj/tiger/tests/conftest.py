@@ -22,16 +22,17 @@ class DisableTaskJoinBlocks(StartStopStep):
 
 
 def pytest_configure(config: Config) -> None:
-    app.conf.update(
-        broker_url="memory://localhost",
-        result_backend="file:///tmp",
-    )
+    # app.conf.update(
+    #     broker_url="memory://localhost",
+    #     result_backend="file:///tmp",
+    # )
     app.steps["consumer"].add(DisableTaskJoinBlocks)
     # toolchains_config = get_toolchains_config()
     # toolchains_config.pull_images()
     argv = [
         "worker",
         f"--concurrency={settings.workers}",
+        "-E",
         # "-Q",
         # ",".join(toolchains_config.generate_queues()),
     ]

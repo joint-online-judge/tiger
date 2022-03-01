@@ -155,6 +155,7 @@ def main() -> None:
     argv = [
         "worker",
         f"--concurrency={settings.workers}",
+        "-E",
         "-Q",
         ",".join(toolchains_config.generate_queues()),
     ]

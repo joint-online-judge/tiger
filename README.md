@@ -15,31 +15,10 @@ The new generation of JOJ Judge Daemon. "Tiger" is named after "Tiger Machine", 
 
 ## Installation
 
-Install <https://github.com/joint-online-judge/autograder-sandbox> first.
+You should use Docker container for development and production. Check <https://github.com/joint-online-judge/joj-deploy-lite>.
 
-### Setup venv (Optional)
+## Test
 
-```bash
-python3 -m venv env
-source env/Scripts/activate
 ```
-
-(get judger JWT from tiger)
-
-```bash
-pip3 install -e .
-python3 -m joj.tiger <JWT>
-```
-
-### Run Flower (Optional)
-
-```bash
-flower
-```
-
-### For developers
-
-```bash
-pip3 install -r requirements-dev.txt
-pre-commit install
+docker exec -it `docker ps -q --filter ancestor=ghcr.io/joint-online-judge/tiger:test` pytest -s
 ```
