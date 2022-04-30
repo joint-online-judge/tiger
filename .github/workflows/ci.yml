@@ -88,14 +88,9 @@ jobs:
           bash ./start.sh lite
           docker ps
       - name: Test and Generate coverage report
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         run: |
-          docker exec tiger-1 \
-            /bin/bash -c "poetry config installer.parallel false; poetry config experimental.new-installer false; poetry install -vvv --no-dev -E test; pytest -svv --cov=./ --cov-report=xml" &
-          while kill -0 $! > /dev/null 2>&1; do
-            free -m
-            sleep 1
-          done
-          docker ps
+          docker exec tiger-1 /bin/bash -c "pytest -svv --cov=./ --cov-report=xml"
           docker cp tiger-1:/root/coverage.xml .
           docker exec tiger-1 \
             /bin/bash -c "/root/runner/main ls -lha"
