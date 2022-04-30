@@ -39,6 +39,7 @@ def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
 
 settings = init_settings(AllSettings, overwrite=False)
 app = Celery("tasks", backend=settings.backend_url, broker=settings.broker_url)
+logger.info(app.control.inspect().active())
 
 # initialize toolchains supported
 toolchains_config = get_toolchains_config()
