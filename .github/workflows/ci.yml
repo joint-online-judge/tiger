@@ -90,7 +90,7 @@ jobs:
       - name: Test and Generate coverage report
         run: |
           docker exec tiger-1 \
-            /bin/bash -c "poetry config installer.parallel false; poetry install -vvv --no-dev -E test; pytest -svv --cov=./ --cov-report=xml" &
+            /bin/bash -c "poetry config installer.parallel false; poetry config experimental.new-installer false; poetry install -vvv --no-dev -E test; pytest -svv --cov=./ --cov-report=xml" &
           while kill -0 $! > /dev/null 2>&1; do
             free -m
             sleep 1
