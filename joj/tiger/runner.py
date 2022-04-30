@@ -31,8 +31,6 @@ class RunnerCommandError(Exception):
     doesn't finish normally.
     """
 
-    ...
-
 
 class Runner:
     """
