@@ -8,6 +8,7 @@ from loguru import logger
 
 from joj.tiger import errors
 from joj.tiger.horse_apis import HorseClient
+from joj.tiger.runner import Runner
 from joj.tiger.schemas import (
     CompletedCommand,
     ExecuteResult,
@@ -53,33 +54,17 @@ class TigerTask:
         pass
 
     async def compile(self) -> CompletedCommand:
-        return CompletedCommand(
-            return_code=0,
-            stdout=b"",
-            stderr="",
-            timed_out=False,
-            stdout_truncated=False,
-            stderr_truncated=False,
-            time=0,
-            memory=0,
-        )
+        with Runner() as runner:
+            return runner.run_command(["echo", "hello world"])
 
     async def execute(self) -> List[ExecuteResult]:
-        return [
-            ExecuteResult(
-                status=ExecuteStatus.accepted,
-                completed_command=CompletedCommand(
-                    return_code=0,
-                    stdout=b"",
-                    stderr="",
-                    timed_out=False,
-                    stdout_truncated=False,
-                    stderr_truncated=False,
-                    time=0,
-                    memory=0,
-                ),
-            )
-        ]
+        with Runner() as runner:
+            return [
+                ExecuteResult(
+                    status=ExecuteStatus.accepted,
+                    completed_command=runner.run_command(["echo", "hello world"]),
+                )
+            ]
 
     async def clean(self) -> None:
         pass

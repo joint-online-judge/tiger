@@ -1,11 +1,7 @@
+from typing import cast
+
 from joj.tiger.app import add_task, empty_task, submit_task
-from joj.tiger.schemas import (
-    CompletedCommand,
-    ExecuteResult,
-    ExecuteStatus,
-    SubmitResult,
-    SubmitStatus,
-)
+from joj.tiger.schemas import ExecuteStatus, SubmitResult, SubmitStatus
 
 
 def test_add() -> None:
@@ -17,35 +13,10 @@ def test_create_task() -> None:
 
 
 def test_submit_task() -> None:
-    res = submit_task.apply_async(({}, "")).get()
-    assert (
-        res
-        == SubmitResult(
-            submit_status=SubmitStatus.accepted,
-            compile_result=CompletedCommand(
-                return_code=0,
-                stdout=b"",
-                stderr="",
-                timed_out=False,
-                stdout_truncated=False,
-                stderr_truncated=False,
-                time=0,
-                memory=0,
-            ),
-            execute_results=[
-                ExecuteResult(
-                    status=ExecuteStatus.accepted,
-                    completed_command=CompletedCommand(
-                        return_code=0,
-                        stdout=b"",
-                        stderr="",
-                        timed_out=False,
-                        stdout_truncated=False,
-                        stderr_truncated=False,
-                        time=0,
-                        memory=0,
-                    ),
-                )
-            ],
-        ).json()
-    )
+    submit_result = cast(SubmitResult, submit_task.apply_async(({}, "")).get())
+    assert submit_result.submit_status == SubmitStatus.accepted
+    assert submit_result.compile_result.return_code == 0
+    assert submit_result.compile_result.stdout == b"hello world\n"
+    assert submit_result.execute_results[0].status == ExecuteStatus.accepted
+    assert submit_result.execute_results[0].completed_command.return_code == 0
+    assert submit_result.execute_results[0].completed_command.stdout == b"hello world\n"
