@@ -95,6 +95,7 @@ jobs:
             free -m
             sleep 1
           done
+          docker ps
           docker cp tiger-1:/root/coverage.xml .
           docker exec tiger-1 \
             /bin/bash -c "/root/runner/main ls -lha"
