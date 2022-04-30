@@ -34,6 +34,7 @@ eventlet = "^0.33.0"
 horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git", branch = "master"}
 joj-elephant = {git = "https://github.com/joint-online-judge/elephant.git", branch = "master"}
 loguru = "^0.5.3"
+msgpack = "^1.0.3"
 pydantic-universal-settings = "^0.1.4"
 PyJWT = "^2.3.0"
 pytest = {version = "^6.2.5", optional = true}
