@@ -31,7 +31,7 @@ class RunnerCommandError(Exception):
     doesn't finish normally.
     """
 
-    pass
+    ...
 
 
 class Runner:
@@ -447,8 +447,7 @@ class Runner:
 
         if original_error is not None:
             raise new_error from original_error
-        else:
-            raise new_error
+        raise new_error
 
     def add_files(
         self, *filenames: str, owner: str = RUNNER_USERNAME, read_only: bool = False
