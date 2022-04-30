@@ -90,7 +90,7 @@ jobs:
       - name: Test and Generate coverage report
         run: |
           docker exec tiger-1 \
-            /bin/bash -c "poetry install --no-dev -E test; pytest -svv --cov=./ --cov-report=xml"
+            /bin/bash -c "poetry install -vvv --no-dev -E test; pytest -svv --cov=./ --cov-report=xml"
           docker cp tiger-1:/root/coverage.xml .
           docker exec tiger-1 \
             /bin/bash -c "/root/runner/main ls -lha"
