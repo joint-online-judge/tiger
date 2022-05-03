@@ -119,6 +119,10 @@ jobs:
                   docker exec tiger-1 /bin/bash -c "pytest -svv --cov=./ --cov-report=xml"
                   docker cp tiger-1:/root/coverage.xml .
                   docker exec tiger-1 /bin/bash -c "/root/runner/main ls -lha"
+            - name: Check docker logs
+              if: always()
+              run: |
+                  docker logs tiger-1
             - name: Upload coverage to Codacy
               uses: codacy/codacy-coverage-reporter-action@v1
               with:
