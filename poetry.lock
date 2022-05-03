@@ -2,7 +2,7 @@
 test = ["pytest", "pytest-asyncio", "pytest-celery", "pytest-cov", "pytest-depends", "pytest-lazy-fixture"]
 
 [metadata]
-content-hash = "fe89f4f78c3f11210c80c8ce263ebd91caeada40ae7ccb228b8952d309aacd20"
+content-hash = "ed295ca7667e74cbc678ca387e93b2a7f6be2580e060cac6be34ec86fe70fe93"
 lock-version = "1.1"
 python-versions = "^3.8"
 
@@ -1132,7 +1132,7 @@ urllib3 = ">=1.15"
 
 [package.source]
 reference = "master"
-resolved_reference = "65309fa0d0f6100938074a436a7cfa763cb885c7"
+resolved_reference = "ed1448090004e98837118a6194f48dc048768948"
 type = "git"
 url = "https://github.com/joint-online-judge/horse-python-client.git"
 
