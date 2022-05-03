@@ -24,11 +24,21 @@ jobs:
                   echo $ELEPHANT_REF_LINE_NO
                   sed -i "${ELEPHANT_REF_LINE_NO}s/.*/resolved_reference = \"$ELEPHANT_REF\"/" poetry.lock
                   git --no-pager diff
+            - name: update joj-horse-client in poetry.lock
+              run: |
+                  HORSE_PYTHON_CLIENT_REF=$(git ls-remote --heads https://github.com/joint-online-judge/horse-python-client.git refs/heads/master | awk '{print $1}')
+                  echo $HORSE_PYTHON_CLIENT_REF
+                  HORSE_PYTHON_CLIENT_URL_LINE_NO=$(awk '/joint-online-judge\/horse-python-client.git/{ print NR; exit }' poetry.lock)
+                  echo $HORSE_PYTHON_CLIENT_URL_LINE_NO
+                  HORSE_PYTHON_CLIENT_REF_LINE_NO=$(($HORSE_PYTHON_CLIENT_URL_LINE_NO-2))
+                  echo $HORSE_PYTHON_CLIENT_REF_LINE_NO
+                  sed -i "${HORSE_PYTHON_CLIENT_REF_LINE_NO}s/.*/resolved_reference = \"$HORSE_PYTHON_CLIENT_REF\"/" poetry.lock
+                  git --no-pager diff
             - name: commit and push updated poetry.lock
               uses: EndBug/add-and-commit@v9
               with:
                   default_author: github_actions
-                  message: update joj-elephant in poetry.lock
+                  message: update joj-elephant and horse-python-client in poetry.lock
             - name: Set up Go
               uses: actions/setup-go@v2
               with:
@@ -108,10 +118,7 @@ jobs:
               run: |
                   docker exec tiger-1 /bin/bash -c "pytest -svv --cov=./ --cov-report=xml"
                   docker cp tiger-1:/root/coverage.xml .
-                  docker exec tiger-1 \
-                    /bin/bash -c "/root/runner/main ls -lha"
-            - run: |
-                  docker logs tiger-1
+                  docker exec tiger-1 /bin/bash -c "/root/runner/main ls -lha"
             - name: Upload coverage to Codacy
               uses: codacy/codacy-coverage-reporter-action@v1
               with:
