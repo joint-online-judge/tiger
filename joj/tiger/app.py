@@ -9,7 +9,6 @@ from pydantic_universal_settings import init_settings
 from pydantic_universal_settings.cli import async_command
 
 from joj.tiger.config import AllSettings
-from joj.tiger.schemas import SubmitResult
 from joj.tiger.task import TigerTask
 from joj.tiger.toolchains import get_toolchains_config
 
@@ -129,7 +128,7 @@ app.conf.update(
 @async_command
 async def submit_task(
     self: Task, record_dict: Dict[str, Any], base_url: str
-) -> SubmitResult:
+) -> Dict[str, Any]:
     task = TigerTask(self, record_dict, base_url)
     try:
         submit_result = await task.submit()
@@ -137,7 +136,7 @@ async def submit_task(
         await task.clean()
         raise e
     await task.clean()
-    return submit_result
+    return submit_result.json()
 
 
 @app.task(name="joj.tiger.empty", bind=True)
