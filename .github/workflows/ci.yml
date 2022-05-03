@@ -112,6 +112,7 @@ jobs:
                   echo $TIGER_TAG
                   cd joj-deploy-lite
                   bash ./start.sh lite
+                  sleep 10
                   docker ps
             - name: Test and Generate coverage report
               if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
