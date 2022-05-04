@@ -116,7 +116,7 @@ jobs:
                   docker exec rabbitmq rabbitmqctl list_vhosts
                   docker ps
                   docker exec rabbitmq /bin/bash /root/rabbitmq-start.sh
-            - name: Check docker logs
+            - name: Check rabbitmq docker logs
               if: always()
               run: |
                   docker logs rabbitmq
@@ -126,10 +126,14 @@ jobs:
                   docker exec tiger-1 /bin/bash -c "pytest -svv --cov=./ --cov-report=xml"
                   docker cp tiger-1:/root/coverage.xml .
                   docker exec tiger-1 /bin/bash -c "/root/runner/main ls -lha"
-            - name: Check docker logs
+            - name: Check tiger-1 docker logs
               if: always()
               run: |
                   docker logs tiger-1
+            - name: Check rabbitmq docker logs
+              if: always()
+              run: |
+                  docker logs rabbitmq
             - name: Upload coverage to Codacy
               uses: codacy/codacy-coverage-reporter-action@v1
               with:
