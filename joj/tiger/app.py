@@ -118,7 +118,6 @@ def startup_event() -> None:  # pragma: no cover
 
 def main() -> None:
     toolchains_config.pull_images()
-    startup_event()
     argv = [
         "worker",
         f"--concurrency={settings.workers}",
@@ -130,6 +129,7 @@ def main() -> None:
         argv += ["-P", "solo"]
     if settings.worker_name:
         argv += ["-n", settings.worker_name]
+    startup_event()
     app.worker_main(argv=argv)
 
 

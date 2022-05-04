@@ -29,7 +29,6 @@ def pytest_configure(config: Config) -> None:
     app.steps["consumer"].add(DisableTaskJoinBlocks)
     # toolchains_config = get_toolchains_config()
     # toolchains_config.pull_images()
-    startup_event()
     argv = [
         "worker",
         f"--concurrency={settings.workers}",
@@ -39,6 +38,7 @@ def pytest_configure(config: Config) -> None:
     ]
     if platform.system() == "Windows":
         argv += ["-P", "solo"]
+    startup_event()
     t = threading.Thread(target=lambda: app.worker_main(argv=argv))
     t.setDaemon(True)
     t.start()
