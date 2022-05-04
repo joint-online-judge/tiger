@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import platform
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from celery import Celery, Task
 from celery.signals import setup_logging
@@ -116,19 +116,26 @@ def startup_event() -> None:  # pragma: no cover
         exit(-1)
 
 
-def main() -> None:
-    toolchains_config.pull_images()
+def generate_celery_argv(settings: AllSettings, *, test: bool = False) -> List[str]:
     argv = [
         "worker",
+        # "--uid=nobody", #FIXME: it will stuck the test
+        "--gid=nogroup",
         f"--concurrency={settings.workers}",
         "-E",
-        "-Q",
-        ",".join(toolchains_config.generate_queues()),
     ]
     if platform.system() == "Windows":
         argv += ["-P", "solo"]
-    if settings.worker_name:
-        argv += ["-n", settings.worker_name]
+    if not test:
+        if settings.worker_name:
+            argv += ["-n", settings.worker_name]
+        toolchains_config.pull_images()
+        argv.extend(["-Q", ",".join(toolchains_config.generate_queues())])
+    return argv
+
+
+def main() -> None:
+    argv = generate_celery_argv(settings)
     startup_event()
     app.worker_main(argv=argv)
 

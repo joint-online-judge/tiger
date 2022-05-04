@@ -30,8 +30,8 @@ class TigerTask:
         self.task = task
         self.record = record
         self.horse_client = HorseClient(base_url)
-        logger.debug(task)
-        logger.debug(record)
+        logger.debug(f"{task=}")
+        logger.debug(f"{record=}")
 
     async def update_state(self) -> None:
         self.task.update_state()
