@@ -8,7 +8,7 @@ ARG UBUNTU_IMAGE_TAG
 
 # useful if the official package registry is too slow
 ARG APT_MIRROR
-RUN if [ ! -z "$APT_MIRROR" ]; then mv /etc/apt/sources.list /etc/apt/sources.list.bak && \
+RUN if [ -n "$APT_MIRROR" ]; then mv /etc/apt/sources.list /etc/apt/sources.list.bak && \
     echo "deb $APT_MIRROR $UBUNTU_IMAGE_TAG main restricted universe multiverse" > /etc/apt/sources.list && \
     echo "deb-src $APT_MIRROR $UBUNTU_IMAGE_TAG main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb $APT_MIRROR $UBUNTU_IMAGE_TAG-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
