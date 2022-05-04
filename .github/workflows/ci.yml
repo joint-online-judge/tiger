@@ -112,7 +112,7 @@ jobs:
                   echo $TIGER_TAG
                   cd joj-deploy-lite
                   bash ./start.sh lite
-                  sleep 10
+                  sleep 20
                   docker exec rabbitmq rabbitmqctl list_vhosts
                   docker ps
             - name: Check docker logs
