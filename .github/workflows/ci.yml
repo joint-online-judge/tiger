@@ -112,9 +112,13 @@ jobs:
                   echo $TIGER_TAG
                   cd joj-deploy-lite
                   bash ./start.sh lite
-                  docker exec rabbitmq rabbitmqctl list_vhosts
                   sleep 10
+                  docker exec rabbitmq rabbitmqctl list_vhosts
                   docker ps
+            - name: Check docker logs
+              if: always()
+              run: |
+                  docker logs rabbitmq
             - name: Test and Generate coverage report
               if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
               run: |
