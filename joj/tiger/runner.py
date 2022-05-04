@@ -507,7 +507,7 @@ def _chunked_read(
     file_obj: IO[bytes], amount_to_read: int, chunk_size: int = 1024 * 16
 ) -> Iterator[bytes]:
     num_reads = amount_to_read // chunk_size
-    for i in range(num_reads):
+    for _ in range(num_reads):
         yield file_obj.read(chunk_size)
 
     remainder = amount_to_read % chunk_size

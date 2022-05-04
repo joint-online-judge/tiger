@@ -19,6 +19,6 @@ You should use Docker container for development and production. Check <https://g
 
 ## Test
 
-```
+```bash
 docker exec -it `docker ps -q --filter ancestor=ghcr.io/joint-online-judge/tiger:test` pytest -s
 ```

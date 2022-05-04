@@ -23,11 +23,13 @@ ENV DEBIAN_FRONTEND="noninteractive"
 RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && \
     rm -rf /var/cache/apt/archives/lock && \
-    apt-get install -y --no-install-recommends  \
+    apt-get install -y --no-install-recommends \
         cmake libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev libgmp-dev \
-        llvm clang googletest \
-    && rm -rf /var/lib/apt/lists/*
+        llvm clang googletest && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install googletest
-RUN cd /usr/src/googletest && \
-    cmake . && make -j4 && make install && make clean
+RUN cmake /usr/src/googletest && \
+    make -C /usr/src/googletest -j4 && \
+    make -C /usr/src/googletest install && \
+    make -C /usr/src/googletest clean
