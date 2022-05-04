@@ -9,7 +9,7 @@ from celery.bootsteps import StartStopStep
 from celery.result import _set_task_join_will_block
 from celery.worker.consumer.consumer import Consumer
 
-from joj.tiger.app import app
+from joj.tiger.app import app, startup_event
 from joj.tiger.config import settings
 
 # from joj.tiger.toolchains import get_toolchains_config
@@ -29,6 +29,7 @@ def pytest_configure(config: Config) -> None:
     app.steps["consumer"].add(DisableTaskJoinBlocks)
     # toolchains_config = get_toolchains_config()
     # toolchains_config.pull_images()
+    startup_event()
     argv = [
         "worker",
         f"--concurrency={settings.workers}",

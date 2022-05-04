@@ -104,13 +104,13 @@ def add_task(self: Task, a: int, b: int) -> int:
 
 @retry_init("Celery")
 async def try_init_celery() -> None:
-    logger.info(app.control.inspect().active())
+    logger.info(f"Celery app inspect result: {app.control.inspect().active()}")
 
 
 def startup_event() -> None:  # pragma: no cover
     try:
         asyncio.run(try_init_celery())
-    except (RetryError) as e:
+    except RetryError as e:
         logger.error("Initialization failed, exiting.")
         logger.error(e)
         exit(-1)
