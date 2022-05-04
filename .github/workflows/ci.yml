@@ -115,7 +115,6 @@ jobs:
                   sleep 20
                   docker exec rabbitmq rabbitmqctl list_vhosts
                   docker ps
-                  docker exec rabbitmq /bin/bash /root/rabbitmq-start.sh
             - name: Check rabbitmq docker logs
               if: always()
               run: |
