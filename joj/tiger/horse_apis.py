@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Awaitable, Dict, cast
 
 from joj.horse_client.api import AuthApi, JudgeApi
@@ -21,6 +22,14 @@ class HorseClient:
         configuration = Configuration()
         configuration.host = f"{base_url}/api/v1"
         self.client = ApiClient(configuration)
+
+    def __del__(self) -> None:
+        loop = asyncio.get_event_loop()
+        task = self.client.rest_client.pool_manager.close()
+        if loop.is_running():
+            loop.create_task(task)
+        else:
+            loop.run_until_complete(task)
 
     @staticmethod
     async def _retry(func: Awaitable[Any]) -> Any:

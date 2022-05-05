@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import platform
+import sys
 from typing import Any, Dict, List
 
 from celery import Celery, Task
@@ -41,7 +42,21 @@ def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
 
 
 settings = init_settings(AllSettings, overwrite=False)
-app = Celery("tasks", backend=settings.backend_url, broker=settings.broker_url)
+app = Celery(
+    "tasks",
+    backend=settings.backend_url,
+    broker=settings.broker_url,
+    include=["joj.tiger.task"],
+)
+
+logger.remove()
+logger.add(
+    sys.stderr,
+    level="DEBUG",
+    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <yellow>"
+    + settings.worker_name
+    + "</yellow> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+)
 
 # initialize toolchains supported
 toolchains_config = get_toolchains_config()
@@ -75,7 +90,7 @@ app.conf.update(
 # app.steps["worker"].add(ConfigBootstep)
 
 
-@app.task(name="joj.tiger.submit", bind=True)
+@app.task(name="joj.tiger.task", bind=True)
 @async_command
 async def submit_task(
     self: Task, record_dict: Dict[str, Any], base_url: str
@@ -83,10 +98,12 @@ async def submit_task(
     task = TigerTask(self, record_dict, base_url)
     try:
         submit_result = await task.submit()
+        logger.info(f"task[{task.id}] submit result: {submit_result}")
     except Exception as e:
-        await task.clean()
+        logger.exception("joj.tiger.task task.submit() error")
         raise e
-    await task.clean()
+    finally:
+        await task.clean()
     return submit_result.json()
 
 

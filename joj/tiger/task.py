@@ -55,16 +55,20 @@ class TigerTask:
 
     async def compile(self) -> CompletedCommand:
         with Runner() as runner:
-            return runner.run_command(["echo", "hello world"])
+            res = runner.run_command(["echo", "hello world"])
+        logger.info(f"task[{self.id}] compile result: {res}")
+        return res
 
     async def execute(self) -> List[ExecuteResult]:
         with Runner() as runner:
-            return [
+            res = [
                 ExecuteResult(
                     status=ExecuteStatus.accepted,
                     completed_command=runner.run_command(["echo", "hello world"]),
                 )
             ]
+        logger.info(f"task[{self.id}] execute result: {res}")
+        return res
 
     async def clean(self) -> None:
         pass
