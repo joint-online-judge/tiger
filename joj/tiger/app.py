@@ -38,7 +38,10 @@ class InterceptHandler(logging.Handler):
 
 @setup_logging.connect
 def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
-    logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
+    logging.basicConfig(
+        handlers=[InterceptHandler()],
+        level=logging.DEBUG if settings.debug else logging.INFO,
+    )
 
 
 settings = init_settings(AllSettings, overwrite=False)
@@ -136,7 +139,7 @@ def startup_event() -> None:  # pragma: no cover
 def generate_celery_argv(settings: AllSettings, *, test: bool = False) -> List[str]:
     argv = [
         "worker",
-        # "--uid=nobody", #FIXME: it will stuck the test
+        # "--uid=nobody", #FIXME: ModuleNotFoundError: No module named 'celery.apps.worker'
         "--gid=nogroup",
         f"--concurrency={settings.workers}",
         "-E",
