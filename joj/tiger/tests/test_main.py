@@ -9,20 +9,20 @@ from joj.tiger.schemas import ExecuteStatus, SubmitResult, SubmitStatus
 from joj.tiger.task import TigerTask
 
 
-@app.task(name="joj.tiger.empty", bind=True)
-@async_command
-async def empty_task(self: Task) -> None:
+@app.task(name="joj.tiger.add", bind=True)
+def add_task(self: Task, a: int, b: int) -> int:
     print(f"{self=}")
+    return a + b
 
 
 def test_add() -> None:
     assert add_task.apply_async((2, 3)).get() == 5
 
 
-@app.task(name="joj.tiger.add", bind=True)
-def add_task(self: Task, a: int, b: int) -> int:
+@app.task(name="joj.tiger.empty", bind=True)
+@async_command
+async def empty_task(self: Task) -> None:
     print(f"{self=}")
-    return a + b
 
 
 def test_create_task() -> None:
