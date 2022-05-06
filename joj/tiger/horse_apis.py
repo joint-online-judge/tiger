@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Awaitable, Dict, cast
+from typing import Any, Awaitable, Callable, Dict, TypeVar, cast
 
 from joj.horse_client.api import AuthApi, JudgeApi
 from joj.horse_client.api_client import ApiClient, Configuration
@@ -15,6 +15,8 @@ from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 from joj.tiger import errors
 from joj.tiger.config import settings
+
+T = TypeVar("T")
 
 
 class HorseClient:
@@ -32,26 +34,28 @@ class HorseClient:
             loop.run_until_complete(task)
 
     @staticmethod
-    async def _retry(func: Awaitable[Any]) -> Any:
+    async def _retry(func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
         @retry(stop=stop_after_attempt(3), wait=wait_exponential(2))
-        async def wrapped_func() -> Any:
-            return await func
+        async def wrapped_func() -> T:
+            res = await func(*args, **kwargs)
+            print(res)
+            return res
 
         return await wrapped_func()
 
     async def login(self) -> None:
         auth_api = AuthApi(self.client)
-        request = auth_api.v1_login(
-            grant_type="password",
-            username=settings.horse_username,
-            password=settings.horse_password,
-            scope="",
-            client_id="",
-            client_secret="",
-            response_type="json",
-        )
         try:
-            response: AuthTokensResp = await self._retry(request)
+            response: AuthTokensResp = await self._retry(
+                auth_api.v1_login,
+                grant_type="password",
+                username=settings.horse_username,
+                password=settings.horse_password,
+                scope="",
+                client_id="",
+                client_secret="",
+                response_type="json",
+            )
         except RetryError:
             # horse is down or network error of the worker
             raise errors.WorkerRejectError("failed to request to login")
@@ -64,7 +68,7 @@ class HorseClient:
 
         auth_tokens = cast(AuthTokens, response.data)
 
-        def configuration_auth_settings(_: Any) -> Dict[str, Dict[str, str]]:
+        def configuration_auth_settings() -> Dict[str, Dict[str, str]]:
             return {
                 "HTTPBearer": {
                     "in": "header",
@@ -79,15 +83,14 @@ class HorseClient:
         self, domain_id: str, record_id: str, task_id: str
     ) -> JudgeCredentials:
         judge_api = JudgeApi(self.client)
-        judge_claim = JudgeClaim(task_id=task_id)
-        request = judge_api.v1_claim_record_by_judge(
-            body=judge_claim,
-            domain=domain_id,
-            record=record_id,
-        )
 
         try:
-            response: JudgeCredentialsResp = await self._retry(request)
+            response: JudgeCredentialsResp = await self._retry(
+                judge_api.v1_claim_record_by_judge,
+                body=JudgeClaim(task_id=task_id),
+                domain=domain_id,
+                record=record_id,
+            )
         except RetryError:
             # horse is down or network error of the worker
             raise errors.WorkerRejectError("failed to request to claim record")
