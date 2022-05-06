@@ -4,13 +4,25 @@ from typing import Any, Dict
 from celery import Task
 from pydantic_universal_settings.cli import async_command
 
-from joj.tiger.app import add_task, app, empty_task
+from joj.tiger.app import app
 from joj.tiger.schemas import ExecuteStatus, SubmitResult, SubmitStatus
 from joj.tiger.task import TigerTask
 
 
+@app.task(name="joj.tiger.empty", bind=True)
+@async_command
+async def empty_task(self: Task) -> None:
+    print(f"{self=}")
+
+
 def test_add() -> None:
     assert add_task.apply_async((2, 3)).get() == 5
+
+
+@app.task(name="joj.tiger.add", bind=True)
+def add_task(self: Task, a: int, b: int) -> int:
+    print(f"{self=}")
+    return a + b
 
 
 def test_create_task() -> None:

@@ -37,9 +37,7 @@ class HorseClient:
     async def _retry(func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
         @retry(stop=stop_after_attempt(3), wait=wait_exponential(2))
         async def wrapped_func() -> T:
-            res = await func(*args, **kwargs)
-            print(res)
-            return res
+            return await func(*args, **kwargs)
 
         return await wrapped_func()
 
