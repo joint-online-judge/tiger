@@ -8,8 +8,7 @@ from celery.bootsteps import StartStopStep
 from celery.result import _set_task_join_will_block
 from celery.worker.consumer.consumer import Consumer
 
-from joj.tiger.app import app, generate_celery_argv, startup_event
-from joj.tiger.config import settings
+from joj.tiger.app import app, generate_celery_argv, settings, startup_event
 
 
 # source: https://github.com/celery/celery/issues/3497

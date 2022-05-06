@@ -23,7 +23,7 @@ class HorseClient:
         configuration.host = f"{base_url}/api/v1"
         self.client = ApiClient(configuration)
 
-    def __del__(self) -> None:
+    def __del__(self) -> None:  # monkey patch for joj.horse_client
         loop = asyncio.get_event_loop()
         task = self.client.rest_client.pool_manager.close()
         if loop.is_running():
@@ -34,8 +34,10 @@ class HorseClient:
     @staticmethod
     async def _retry(func: Awaitable[Any]) -> Any:
         @retry(stop=stop_after_attempt(3), wait=wait_exponential(2))
-        async def wrapper() -> Any:
+        async def wrapped_func() -> Any:
             return await func
+
+        return await wrapped_func()
 
     async def login(self) -> None:
         auth_api = AuthApi(self.client)
@@ -52,11 +54,13 @@ class HorseClient:
             response: AuthTokensResp = await self._retry(request)
         except RetryError:
             # horse is down or network error of the worker
-            raise errors.WorkerRejectError()
+            raise errors.WorkerRejectError("failed to request to login")
 
         if response.error_code != ErrorCode.SUCCESS:
             # username / password error
-            raise errors.WorkerRejectError()
+            raise errors.WorkerRejectError(
+                f"failed to login with error code {response.error_code}"
+            )
 
         auth_tokens = cast(AuthTokens, response.data)
 
@@ -86,10 +90,12 @@ class HorseClient:
             response: JudgeCredentialsResp = await self._retry(request)
         except RetryError:
             # horse is down or network error of the worker
-            raise errors.WorkerRejectError()
+            raise errors.WorkerRejectError("failed to request to claim record")
 
         if response.error_code != ErrorCode.SUCCESS:
-            raise errors.FatalError()
+            raise errors.WorkerRejectError(
+                f"failed to claim record with error code {response.error_code}"
+            )
 
         judge_credentials = cast(JudgeCredentials, response.data)
         return judge_credentials

@@ -32,9 +32,10 @@ class TigerTask:
         self.horse_client = HorseClient(base_url)
         logger.debug(f"{task=}")
         logger.debug(f"{record=}")
+        logger.debug(f"{base_url=}")
 
     async def update_state(self) -> None:
-        self.task.update_state()
+        self.task.update_state()  # TODO: update state to horse
 
     async def login(self) -> None:
         await self.horse_client.login()
@@ -56,7 +57,8 @@ class TigerTask:
     async def compile(self) -> CompletedCommand:
         with Runner() as runner:
             res = runner.run_command(["echo", "hello world"])
-        logger.info(f"task[{self.id}] compile result: {res}")
+        logger.info(f"Task joj.tiger.task[{self.id}] compile result: {res}")
+        # TODO: update state to horse
         return res
 
     async def execute(self) -> List[ExecuteResult]:
@@ -67,7 +69,8 @@ class TigerTask:
                     completed_command=runner.run_command(["echo", "hello world"]),
                 )
             ]
-        logger.info(f"task[{self.id}] execute result: {res}")
+            # TODO: update state to horse
+        logger.info(f"Task joj.tiger.task[{self.id}] execute result: {res}")
         return res
 
     async def clean(self) -> None:
@@ -75,10 +78,10 @@ class TigerTask:
 
     async def submit(self) -> SubmitResult:
         try:
-            # await self.login()
-            # await self.claim()
-            # await self.fetch_problem_config()
-            # await self.fetch_record()
+            await self.login()
+            await self.claim()
+            await self.fetch_problem_config()
+            await self.fetch_record()
             compile_result = await self.compile()
             execute_results = await self.execute()
             return SubmitResult(
@@ -86,24 +89,11 @@ class TigerTask:
                 compile_result=compile_result,
                 execute_results=execute_results,
             )
-        except errors.WorkerRejectError:
-            raise Reject("WorkerRejectError", requeue=True)
+        except errors.WorkerRejectError as e:
+            raise Reject(e.error_msg)
         except errors.RetryableError:
             self.task.retry(countdown=5)
         except Exception as e:
             logger.exception(e)
             # fail the task
             return SubmitResult(submit_status=SubmitStatus.system_error)
-        # logger.info(self)
-        # logger.info(record_dict)
-        # try:
-        #     access_token = await get_access_token(base_url)
-        #     print(access_token)
-        # except Exception as e:
-        #     logger.error(e)
-        #     logger.info(self.request.delivery_info)
-        #     # await asyncio.sleep(5)
-        #     # raise Reject("login failed", requeue=True)
-        #
-        #     self.retry(countdown=1)
-        #     await asyncio.sleep(5)

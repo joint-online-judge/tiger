@@ -79,20 +79,6 @@ app.conf.update(
 )
 
 
-# app.user_options["preload"].add(Option("-j", dest="jwt"))
-
-
-# class ConfigBootstep(bootsteps.Step):
-#     def __init__(
-#         self, worker: Any, parent: Any, jwt: List[Any], **options: Any
-#     ) -> None:
-#         access_jwt = jwt[0]
-#         app.conf["HEADERS"] = {"Authorization": f"Bearer {access_jwt}"}
-#
-#
-# app.steps["worker"].add(ConfigBootstep)
-
-
 @app.task(name="joj.tiger.task", bind=True)
 @async_command
 async def submit_task(
@@ -122,12 +108,11 @@ def add_task(self: Task, a: int, b: int) -> int:
     return a + b
 
 
-@retry_init("Celery")
-async def try_init_celery() -> None:
-    logger.info(f"Celery app inspect result: {app.control.inspect().active()}")
-
-
 def startup_event() -> None:  # pragma: no cover
+    @retry_init("Celery")
+    async def try_init_celery() -> None:
+        logger.info(f"Celery app inspect result: {app.control.inspect().active()}")
+
     try:
         asyncio.run(try_init_celery())
     except RetryError as e:
