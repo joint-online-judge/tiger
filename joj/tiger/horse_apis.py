@@ -7,9 +7,9 @@ from joj.horse_client.models import (
     AuthTokens,
     AuthTokensResp,
     ErrorCode,
-    JudgeClaim,
-    JudgeCredentials,
-    JudgeCredentialsResp,
+    JudgerClaim,
+    JudgerCredentials,
+    JudgerCredentialsResp,
 )
 from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
@@ -79,13 +79,13 @@ class HorseClient:
 
     async def claim_record(
         self, domain_id: str, record_id: str, task_id: str
-    ) -> JudgeCredentials:
+    ) -> JudgerCredentials:
         judge_api = JudgeApi(self.client)
 
         try:
-            response: JudgeCredentialsResp = await self._retry(
-                judge_api.v1_claim_record_by_judge,
-                body=JudgeClaim(task_id=task_id),
+            response: JudgerCredentialsResp = await self._retry(
+                judge_api.v1_claim_record_by_judger,
+                body=JudgerClaim(task_id=task_id),
                 domain=domain_id,
                 record=record_id,
             )
@@ -98,8 +98,8 @@ class HorseClient:
                 f"failed to claim record with error code {response.error_code}"
             )
 
-        judge_credentials = cast(JudgeCredentials, response.data)
-        return judge_credentials
+        judger_credentials = cast(JudgerCredentials, response.data)
+        return judger_credentials
 
 
 # @lru_cache()

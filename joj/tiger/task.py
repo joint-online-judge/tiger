@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from celery import Task
 from celery.exceptions import Reject
-from joj.horse_client.models import JudgeCredentials
+from joj.horse_client.models import JudgerCredentials
 from loguru import logger
 
 from joj.tiger import errors
@@ -23,7 +23,7 @@ class TigerTask:
     task: Task
     record: Dict[str, Any]
     horse_client: HorseClient
-    credentials: JudgeCredentials
+    credentials: JudgerCredentials
 
     def __init__(self, task: Task, record: Dict[str, Any], base_url: str) -> None:
         self.id = uuid4()  # this id should be unique, be used to create docker images
