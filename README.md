@@ -10,7 +10,7 @@ The new generation of JOJ Judge Daemon. "Tiger" is named after "Tiger Machine", 
 
 ## Requirements
 
-+ Python >= 3.7
++ Python >= 3.8
 + rabbitmq
 
 ## Installation
@@ -20,5 +20,5 @@ You should use Docker container for development and production. Check <https://g
 ## Test
 
 ```bash
-docker exec -it `docker ps -q --filter ancestor=ghcr.io/joint-online-judge/tiger:test` pytest -s
+docker exec -it tiger-1 pytest -svv
 ```
