@@ -32,6 +32,7 @@ horse-python-client = {git = "https://github.com/joint-online-judge/horse-python
 joj-elephant = {git = "https://github.com/joint-online-judge/elephant.git"}
 loguru = "^0.5.3"
 msgpack = "^1.0.3"
+orjson = "^3.6.8"
 pydantic-universal-settings = "^0.1.4"
 pytest = {version = "^6.2.5", optional = true}
 pytest-asyncio = {version = "^0.15.1", optional = true}

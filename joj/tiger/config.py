@@ -18,8 +18,7 @@ class BaseConfig(BaseSettings):
     workers: int = 1
     worker_name: str = ""
 
-    # horse_host: str = "localhost"
-    # horse_port: int = 34765
+    # horse config
     horse_username: str = ""
     horse_password: str = ""
 
@@ -29,9 +28,11 @@ class BaseConfig(BaseSettings):
     redis_password: str = ""
     redis_db_index: int = 0
 
+    # celery config
     backend_url: str = "rpc://"
     broker_url: str = "amqp://guest:guest@localhost:5672/"
 
+    # toolchains config
     toolchains_config: str = str(
         (
             Path(path.dirname(__file__)).parent.parent / "toolchains/config.yaml"
@@ -39,6 +40,11 @@ class BaseConfig(BaseSettings):
     )
     queues: str = "default"
     queues_type: str = "official"
+
+    # lakefs config
+    lakefs_s3_domain: str = "s3.lakefs.example.com"
+    lakefs_host: str = ""
+    lakefs_port: int = 34766
 
 
 GeneratedSettings: Type[BaseConfig] = generate_all_settings(

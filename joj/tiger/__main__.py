@@ -21,7 +21,9 @@ def main() -> None:
     else:
         p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
         for changes in watch("joj/tiger"):
-            print("changes:", changes)
+            print(
+                f"WatchGod detected file change in '{[change[1] for change in changes]}'. Reloading..."
+            )
             p.terminate()
             p.poll()
             p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
