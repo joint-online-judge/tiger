@@ -2,7 +2,7 @@ import asyncio
 import logging
 import platform
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from celery import Celery, Task
 from celery.signals import setup_logging
@@ -20,6 +20,7 @@ from joj.tiger.utils.retry import retry_init
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         # Get corresponding Loguru level if it exists
+        level: Union[int, str]
         try:
             level = logger.level(record.levelname).name
         except ValueError:
@@ -40,7 +41,9 @@ class InterceptHandler(logging.Handler):
 def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
     logging.basicConfig(
         handlers=[InterceptHandler()],
-        level=logging.DEBUG if settings.debug else logging.INFO,
+        level=logging.INFO,
+        # FIXME: debug log from celery may destory some our logs
+        # level=logging.DEBUG if settings.debug else logging.INFO,
     )
 
 

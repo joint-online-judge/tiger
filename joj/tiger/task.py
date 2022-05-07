@@ -99,7 +99,7 @@ class TigerTask:
         rclone = RClone(rclone_config)
         self.record_fs = TempStorage()
         manager = Manager(rclone, source, self.record_fs)
-        manager.sync_without_validation()
+        manager.sync_without_validation()  # FIXME: ERROR : : error reading source directory: AccessDenied: Access Denied.
         logger.info(
             f"Task joj.tiger.task[{self.id}] record fetched: {self.record_fs.fs.listdir('/')}"
         )
