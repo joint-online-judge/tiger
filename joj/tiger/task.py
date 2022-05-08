@@ -1,3 +1,4 @@
+import asyncio
 from io import BytesIO
 from typing import Any, Dict, List, cast
 from uuid import UUID, uuid4
@@ -112,14 +113,32 @@ class TigerTask:
         return res
 
     async def execute(self) -> List[ExecuteResult]:
+        res = []
+        tasks = []
         with Runner() as runner:
-            res = [
-                ExecuteResult(
-                    status=ExecuteStatus.accepted,
-                    completed_command=runner.run_command(["echo", "hello world"]),
+            for i in range(10):
+                status = ExecuteStatus.accepted
+                command_res = runner.run_command(["echo", "hello world"])
+                exec_res = ExecuteResult(status=status, completed_command=command_res)
+                res.append(exec_res)
+                # it will submit the cases correctly, but create_task will not
+                # await self.horse_client.submit_case(
+                #     domain_id=self.record["domain_id"],
+                #     record_id=self.record["id"],
+                #     case_number=i,
+                #     exec_res=exec_res,
+                # )
+                tasks.append(
+                    asyncio.create_task(
+                        self.horse_client.submit_case(
+                            domain_id=self.record["domain_id"],
+                            record_id=self.record["id"],
+                            case_number=i,
+                            exec_res=exec_res,
+                        )
+                    )
                 )
-            ]
-            # TODO: update state to horse
+        await asyncio.gather(*tasks)
         logger.info(f"Task joj.tiger.task[{self.id}] execute result: {res}")
         return res
 

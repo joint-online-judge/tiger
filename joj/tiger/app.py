@@ -90,7 +90,7 @@ async def submit_task(
     task = TigerTask(self, record_dict, base_url)
     try:
         submit_result = await task.submit()
-        logger.info(f"task[{task.id}] submit result: {submit_result}")
+        # logger.info(f"task[{task.id}] submit result: {submit_result}")
     except Exception as e:
         logger.exception("joj.tiger.task task.submit() error")
         raise e

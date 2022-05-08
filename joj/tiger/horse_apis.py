@@ -6,15 +6,19 @@ from joj.horse_client.api_client import ApiClient, Configuration
 from joj.horse_client.models import (
     AuthTokens,
     AuthTokensResp,
+    EmptyResp,
     ErrorCode,
     JudgerClaim,
     JudgerCredentials,
     JudgerCredentialsResp,
+    RecordCaseSubmit,
 )
+from loguru import logger
 from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 from joj.tiger import errors
 from joj.tiger.config import settings
+from joj.tiger.schemas import ExecuteResult
 
 T = TypeVar("T")
 
@@ -100,6 +104,43 @@ class HorseClient:
 
         judger_credentials = cast(JudgerCredentials, response.data)
         return judger_credentials
+
+    async def submit_case(
+        self,
+        domain_id: str,
+        record_id: str,
+        case_number: int,
+        exec_res: ExecuteResult,
+    ) -> None:
+        judge_api = JudgeApi(self.client)
+
+        try:
+            response: EmptyResp = await self._retry(
+                judge_api.v1_submit_case_by_judger,
+                body=RecordCaseSubmit(
+                    state=exec_res.status._name_,
+                    score=10,
+                    time_ms=int(exec_res.completed_command.time * 1000),
+                    memory_kb=exec_res.completed_command.memory,
+                    return_code=exec_res.completed_command.return_code,
+                    stdout=exec_res.completed_command.stdout.decode("utf-8"),
+                    stderr=exec_res.completed_command.stderr.decode("utf-8"),
+                ),
+                case=case_number,
+                domain=domain_id,
+                record=record_id,
+            )
+        except RetryError:
+            # horse is down or network error of the worker
+            raise errors.WorkerRejectError("failed to request to submit case result")
+
+        if response.error_code != ErrorCode.SUCCESS:
+            raise errors.WorkerRejectError(
+                f"failed to submit case result with error code {response.error_code}"
+            )
+        logger.info(
+            f"case submitted to /domains/{domain_id}/records/{record_id}/cases/{case_number}/judge"
+        )
 
 
 # @lru_cache()
