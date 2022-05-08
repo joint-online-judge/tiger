@@ -1,6 +1,7 @@
 import asyncio
+from datetime import datetime
 from io import BytesIO
-from typing import Any, Dict, List, cast
+from typing import Any, Awaitable, Dict, List, cast
 from uuid import UUID, uuid4
 
 import orjson
@@ -36,6 +37,9 @@ class TigerTask:
     record_fs: OSFS
     horse_client: HorseClient
     credentials: JudgerCredentials
+    tasks: List[Awaitable[Any]]
+    submit_res: SubmitResult
+    judged_at: datetime
 
     def __init__(self, task: Task, record: Dict[str, Any], base_url: str) -> None:
         self.id = uuid4()  # this id should be unique, be used to create docker images
@@ -43,6 +47,7 @@ class TigerTask:
         self.task_id = cast(str, cast(Context, task.request).id)
         self.record = record
         self.horse_client = HorseClient(base_url)
+        self.tasks = []
 
     async def update_state(self) -> None:
         self.task.update_state()  # TODO: update state to horse
@@ -112,23 +117,22 @@ class TigerTask:
         # TODO: update state to horse
         return res
 
+    async def lint(self) -> CompletedCommand:
+        with Runner() as runner:
+            res = runner.run_command(["echo", "hello world"])
+        logger.info(f"Task joj.tiger.task[{self.id}] lint result: {res}")
+        # TODO: update state to horse
+        return res
+
     async def execute(self) -> List[ExecuteResult]:
         res = []
-        tasks = []
         with Runner() as runner:
             for i in range(10):
                 status = ExecuteStatus.accepted
                 command_res = runner.run_command(["echo", "hello world"])
                 exec_res = ExecuteResult(status=status, completed_command=command_res)
                 res.append(exec_res)
-                # it will submit the cases correctly, but create_task will not
-                # await self.horse_client.submit_case(
-                #     domain_id=self.record["domain_id"],
-                #     record_id=self.record["id"],
-                #     case_number=i,
-                #     exec_res=exec_res,
-                # )
-                tasks.append(
+                self.tasks.append(
                     asyncio.create_task(
                         self.horse_client.submit_case(
                             domain_id=self.record["domain_id"],
@@ -138,24 +142,25 @@ class TigerTask:
                         )
                     )
                 )
-        await asyncio.gather(*tasks)
         logger.info(f"Task joj.tiger.task[{self.id}] execute result: {res}")
         return res
 
     async def clean(self) -> None:
-        pass
+        await asyncio.gather(*self.tasks)
 
-    async def submit(self) -> SubmitResult:
+    async def run(self) -> None:
         try:
             await self.login()
             await self.claim()
-            await self.fetch_problem_config()
-            await self.fetch_record()
+            await asyncio.gather(self.fetch_problem_config(), self.fetch_record())
+            self.judged_at = datetime.now()
             compile_result = await self.compile()
+            lint_result = await self.lint()
             execute_results = await self.execute()
-            return SubmitResult(
+            self.submit_res = SubmitResult(
                 submit_status=SubmitStatus.accepted,
                 compile_result=compile_result,
+                lint_result=lint_result,
                 execute_results=execute_results,
             )
         except errors.WorkerRejectError as e:
@@ -165,4 +170,18 @@ class TigerTask:
         except Exception as e:
             logger.exception(e)
             # fail the task
-            return SubmitResult(submit_status=SubmitStatus.system_error)
+            self.submit_res = SubmitResult(submit_status=SubmitStatus.system_error)
+
+    async def submit(self) -> SubmitResult:
+        await self.run()
+        self.tasks.append(
+            asyncio.create_task(
+                self.horse_client.submit_record(
+                    domain_id=self.record["domain_id"],
+                    record_id=self.record["id"],
+                    submit_res=self.submit_res,
+                    judged_at=self.judged_at,
+                )
+            )
+        )
+        return self.submit_res

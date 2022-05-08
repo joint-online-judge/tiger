@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict, TypeVar, cast
 
 from joj.horse_client.api import AuthApi, JudgeApi
@@ -12,13 +13,14 @@ from joj.horse_client.models import (
     JudgerCredentials,
     JudgerCredentialsResp,
     RecordCaseSubmit,
+    RecordSubmit,
 )
 from loguru import logger
 from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 from joj.tiger import errors
 from joj.tiger.config import settings
-from joj.tiger.schemas import ExecuteResult
+from joj.tiger.schemas import ExecuteResult, SubmitResult
 
 T = TypeVar("T")
 
@@ -114,6 +116,9 @@ class HorseClient:
     ) -> None:
         judge_api = JudgeApi(self.client)
 
+        logger.debug(
+            f"case started to submit to /domains/{domain_id}/records/{record_id}/cases/{case_number}/judge"
+        )
         try:
             response: EmptyResp = await self._retry(
                 judge_api.v1_submit_case_by_judger,
@@ -138,8 +143,42 @@ class HorseClient:
             raise errors.WorkerRejectError(
                 f"failed to submit case result with error code {response.error_code}"
             )
-        logger.info(
+        logger.debug(
             f"case submitted to /domains/{domain_id}/records/{record_id}/cases/{case_number}/judge"
+        )
+
+    async def submit_record(
+        self,
+        domain_id: str,
+        record_id: str,
+        submit_res: SubmitResult,
+        judged_at: datetime,
+    ) -> None:
+        judge_api = JudgeApi(self.client)
+        logger.debug(
+            f"record started to submit to /domains/{domain_id}/records/{record_id}/judge"
+        )
+
+        try:
+            response: EmptyResp = await self._retry(
+                judge_api.v1_submit_record_by_judger,
+                body=RecordSubmit(
+                    state=submit_res.submit_status._name_,
+                    judged_at=judged_at.isoformat(),
+                ),
+                domain=domain_id,
+                record=record_id,
+            )
+        except RetryError:
+            # horse is down or network error of the worker
+            raise errors.WorkerRejectError("failed to request to submit record result")
+
+        if response.error_code != ErrorCode.SUCCESS:
+            raise errors.WorkerRejectError(
+                f"failed to submit record result with error code {response.error_code}"
+            )
+        logger.debug(
+            f"record submitted to /domains/{domain_id}/records/{record_id}/judge"
         )
 
 
