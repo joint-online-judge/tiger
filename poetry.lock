@@ -1446,7 +1446,7 @@ urllib3 = ">=1.15"
 
 [package.source]
 reference = "master"
-resolved_reference = "eebedec3a6db2862776e3f366c437c59171a8dd2"
+resolved_reference = "502d147150fb694471f52499af85f302b0da5f70"
 type = "git"
 url = "https://github.com/joint-online-judge/horse-python-client.git"
 
