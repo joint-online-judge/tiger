@@ -125,7 +125,7 @@ class HorseClient:
                 body=RecordCaseSubmit(
                     state=exec_res.status._name_,
                     score=10,
-                    time_ms=int(exec_res.completed_command.time * 1000),
+                    time_ms=exec_res.completed_command.time // (1000 * 1000),
                     memory_kb=exec_res.completed_command.memory,
                     return_code=exec_res.completed_command.return_code,
                     stdout=exec_res.completed_command.stdout.decode("utf-8"),

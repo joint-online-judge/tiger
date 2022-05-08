@@ -1,5 +1,6 @@
 # modified from https://github.com/eecs-autograder/autograder-sandbox/blob/develop/autograder_sandbox/autograder_sandbox.py
 # Copyright eecs-autograder under GNU Lesser General Public License v3.0
+import asyncio
 import os
 import subprocess
 import tarfile
@@ -427,6 +428,35 @@ class Runner:
                 return self._raise_runner_command_error(
                     stdout=runner_stdout, stderr=runner_stderr, original_error=e
                 )
+
+    async def async_run_command(
+        self,
+        args: List[str],
+        block_process_spawn: bool = False,
+        max_stack_size: Optional[int] = None,
+        max_virtual_memory: Optional[int] = None,
+        as_root: bool = False,
+        stdin: Optional[IO[AnyStr]] = None,
+        timeout: Optional[int] = None,
+        check: bool = False,
+        truncate_stdout: Optional[int] = None,
+        truncate_stderr: Optional[int] = None,
+    ) -> CompletedCommand:
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None,
+            self.run_command,
+            args,
+            block_process_spawn,
+            max_stack_size,
+            max_virtual_memory,
+            as_root,
+            stdin,
+            timeout,
+            check,
+            truncate_stdout,
+            truncate_stderr,
+        )
 
     def _raise_runner_command_error(
         self,

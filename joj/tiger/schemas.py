@@ -36,7 +36,7 @@ class CompletedCommand(BaseModel):
     timed_out: bool
     stdout_truncated: bool
     stderr_truncated: bool
-    time: float
+    time: int
     memory: int
 
 

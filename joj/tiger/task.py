@@ -112,14 +112,14 @@ class TigerTask:
 
     async def compile(self) -> CompletedCommand:
         with Runner() as runner:
-            res = runner.run_command(["echo", "hello world"])
+            res = await runner.async_run_command(["echo", "hello world"])
         logger.info(f"Task joj.tiger.task[{self.id}] compile result: {res}")
         # TODO: update state to horse
         return res
 
     async def lint(self) -> CompletedCommand:
         with Runner() as runner:
-            res = runner.run_command(["echo", "hello world"])
+            res = await runner.async_run_command(["echo", "hello world"])
         logger.info(f"Task joj.tiger.task[{self.id}] lint result: {res}")
         # TODO: update state to horse
         return res
@@ -129,7 +129,7 @@ class TigerTask:
         with Runner() as runner:
             for i in range(10):
                 status = ExecuteStatus.accepted
-                command_res = runner.run_command(["echo", "hello world"])
+                command_res = await runner.async_run_command(["sleep", "1"])
                 exec_res = ExecuteResult(status=status, completed_command=command_res)
                 res.append(exec_res)
                 self.tasks.append(
