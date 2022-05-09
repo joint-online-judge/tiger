@@ -1,3 +1,4 @@
+import asyncio
 import platform
 import subprocess
 import sys
@@ -17,7 +18,7 @@ def main() -> None:
         exit(-1)
 
     if not settings.debug or settings.workers != 1:
-        main()
+        asyncio.run(main())  # TODO: try to use uvloop
     else:
         p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
         for changes in watch("joj/tiger"):

@@ -1,7 +1,8 @@
+import asyncio
 from functools import lru_cache
 from typing import Any, Dict, List
 
-import docker
+import aiodocker
 from benedict import benedict
 from loguru import logger
 from pydantic import BaseModel, root_validator
@@ -11,10 +12,10 @@ class Image(BaseModel):
     name: str
     image: str
 
-    def pull(self) -> None:
+    async def pull(self) -> None:
         logger.info("docker pull {}", self.image)
-        client = docker.from_env()
-        client.images.pull(self.image)
+        docker = aiodocker.Docker()
+        await docker.images.pull(self.image)
 
 
 class Queue(BaseModel):
@@ -53,13 +54,12 @@ class ToolchainsConfig(BaseModel):
         values["queues_type"] = settings.queues_type
         return values
 
-    def pull_images(self) -> None:
+    async def pull_images(self) -> None:
         unique_images = set()
         for queue in self.queues.values():
             for image in queue.images:
                 unique_images.add(image)
-        for image in unique_images:
-            self.images[image].pull()
+        await asyncio.gather(*[self.images[image].pull() for image in unique_images])
 
     def generate_queues(self) -> List[str]:
         result = []

@@ -25,9 +25,9 @@ repository = "https://github.com/joint-online-judge/tiger/"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
+aiodocker = "^0.21.0"
 aioredlock = "^0.7.2"
 celery = {extras = ["redis"], version = "^5.2.1"}
-docker = "^5.0.3"
 horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git"}
 joj-elephant = {git = "https://github.com/joint-online-judge/elephant.git"}
 loguru = "^0.5.3"

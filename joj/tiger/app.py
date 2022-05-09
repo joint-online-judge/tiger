@@ -99,42 +99,47 @@ async def submit_task(
     return submit_result.json()
 
 
-def startup_event() -> None:  # pragma: no cover
-    @retry_init("Celery")
-    async def try_init_celery() -> None:
-        logger.info(f"Celery app inspect result: {app.control.inspect().active()}")
+async def startup(settings: AllSettings, *, test: bool = False) -> List[str]:
+    async def startup_event() -> None:  # pragma: no cover
+        @retry_init("Celery")
+        async def try_init_celery() -> None:
+            logger.info(f"Celery app inspect result: {app.control.inspect().active()}")
 
-    try:
-        asyncio.run(try_init_celery())
-    except RetryError as e:
-        logger.error("Initialization failed, exiting.")
-        logger.error(e)
-        exit(-1)
+        try:
+            await try_init_celery()
+        except RetryError as e:
+            logger.error("Initialization failed, exiting.")
+            logger.error(e)
+            exit(-1)
 
+    async def generate_celery_argv(
+        settings: AllSettings, *, test: bool = False
+    ) -> List[str]:
+        argv = [
+            "worker",
+            # "--uid=nobody", #FIXME: ModuleNotFoundError: No module named 'celery.apps.worker'
+            "--gid=nogroup",
+            f"--concurrency={settings.workers}",
+            "-E",
+        ]
+        if platform.system() == "Windows":
+            argv += ["-P", "solo"]
+        if not test:
+            if settings.worker_name:
+                argv += ["-n", settings.worker_name]
+            await toolchains_config.pull_images()
+            argv.extend(["-Q", ",".join(toolchains_config.generate_queues())])
+        return argv
 
-def generate_celery_argv(settings: AllSettings, *, test: bool = False) -> List[str]:
-    argv = [
-        "worker",
-        # "--uid=nobody", #FIXME: ModuleNotFoundError: No module named 'celery.apps.worker'
-        "--gid=nogroup",
-        f"--concurrency={settings.workers}",
-        "-E",
-    ]
-    if platform.system() == "Windows":
-        argv += ["-P", "solo"]
-    if not test:
-        if settings.worker_name:
-            argv += ["-n", settings.worker_name]
-        toolchains_config.pull_images()
-        argv.extend(["-Q", ",".join(toolchains_config.generate_queues())])
+    _, argv = await asyncio.gather(
+        startup_event(), generate_celery_argv(settings, test=test)
+    )
     return argv
 
 
-def main() -> None:
-    argv = generate_celery_argv(settings)
-    startup_event()
-    app.worker_main(argv=argv)
+async def main() -> None:
+    app.worker_main(argv=await startup(settings))
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

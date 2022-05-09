@@ -8,7 +8,7 @@ from celery.bootsteps import StartStopStep
 from celery.result import _set_task_join_will_block
 from celery.worker.consumer.consumer import Consumer
 
-from joj.tiger.app import app, generate_celery_argv, settings, startup_event
+from joj.tiger.app import app, settings, startup
 
 
 # source: https://github.com/celery/celery/issues/3497
@@ -19,8 +19,7 @@ class DisableTaskJoinBlocks(StartStopStep):
 
 def pytest_configure(config: Config) -> None:
     app.steps["consumer"].add(DisableTaskJoinBlocks)
-    argv = generate_celery_argv(settings, test=True)
-    startup_event()
+    argv = asyncio.run(startup(settings, test=True))
     t = threading.Thread(target=lambda: app.worker_main(argv=argv))
     t.setDaemon(True)
     t.start()
