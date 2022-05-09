@@ -12,7 +12,6 @@ from pydantic_universal_settings import (
 )
 
 
-@add_settings
 class BaseConfig(BaseSettings):
     debug: bool = False
     workers: int = 1
@@ -45,6 +44,9 @@ class BaseConfig(BaseSettings):
     lakefs_s3_domain: str = "s3.lakefs.example.com"
     lakefs_host: str = ""
     lakefs_port: int = 34766
+
+
+add_settings(BaseConfig)
 
 
 GeneratedSettings: Type[BaseConfig] = generate_all_settings(
