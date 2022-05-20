@@ -1423,7 +1423,7 @@ urllib3 = ">=1.15"
 
 [package.source]
 reference = "master"
-resolved_reference = "65a77c35d9085d38dbc7a5ea02f6d236599cc053"
+resolved_reference = "ff9243ceececd648a55a3ba37788083d178de75f"
 type = "git"
 url = "https://github.com/joint-online-judge/horse-python-client.git"
 
@@ -1487,7 +1487,7 @@ test = ["asynctest (>=0.13.0,<0.14.0)", "coverage (>=5.5,<6.0)", "pytest (>=6.2.
 
 [package.source]
 reference = "master"
-resolved_reference = "9d51cb05fd709ef12f4b94d0e121bb60472d6298"
+resolved_reference = "66b40c470aab423c4e58f649dd4804b6fc5d257b"
 type = "git"
 url = "https://github.com/joint-online-judge/elephant.git"
 
