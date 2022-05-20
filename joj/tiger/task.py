@@ -71,8 +71,8 @@ class TigerTask:
             endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
             repo_name=self.credentials.problem_config_repo_name,
             branch_name=self.credentials.problem_config_commit_id,
-            username=self.credentials.access_key_id,
-            password=self.credentials.secret_access_key,
+            username=settings.lakefs_username,
+            password=settings.lakefs_password,
             host_in_config="lakefs",
         )
         file = BytesIO()
