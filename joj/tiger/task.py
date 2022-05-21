@@ -79,37 +79,45 @@ class TigerTask:
         )
 
     async def fetch_problem_config(self) -> None:
-        source = LakeFSStorage(
-            endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
-            repo_name=self.credentials.problem_config_repo_name,
-            branch_name=self.credentials.problem_config_commit_id,
-            username=settings.lakefs_username,
-            password=settings.lakefs_password,
-            host_in_config="lakefs",
-        )
-        rclone = get_rclone()
-        self.problem_config_fs = TempStorage()
-        manager = Manager(rclone, source, self.problem_config_fs)
-        manager.sync_without_validation()
-        config_json_file = self.problem_config_fs.fs.open("config.json")
-        self.problem_config = Config(**orjson.loads(config_json_file.read()))
+        def sync_func() -> None:
+            source = LakeFSStorage(
+                endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
+                repo_name=self.credentials.problem_config_repo_name,
+                branch_name=self.credentials.problem_config_commit_id,
+                username=settings.lakefs_username,
+                password=settings.lakefs_password,
+                host_in_config="lakefs",
+            )
+            rclone = get_rclone()
+            self.problem_config_fs = TempStorage()
+            manager = Manager(rclone, source, self.problem_config_fs)
+            manager.sync_without_validation()
+            config_json_file = self.problem_config_fs.fs.open("config.json")
+            self.problem_config = Config(**orjson.loads(config_json_file.read()))
+
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, sync_func)
         logger.info(
             f"Task joj.tiger.task[{self.id}] problem config fetched: {self.problem_config}"
         )
 
     async def fetch_record(self) -> None:
-        source = LakeFSStorage(
-            endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
-            repo_name=self.credentials.record_repo_name,
-            branch_name=self.credentials.record_commit_id,
-            username=settings.lakefs_username,
-            password=settings.lakefs_password,
-            host_in_config="lakefs",
-        )
-        rclone = get_rclone()
-        self.record_fs = TempStorage()
-        manager = Manager(rclone, source, self.record_fs)
-        manager.sync_without_validation()
+        def sync_func() -> None:
+            source = LakeFSStorage(
+                endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
+                repo_name=self.credentials.record_repo_name,
+                branch_name=self.credentials.record_commit_id,
+                username=settings.lakefs_username,
+                password=settings.lakefs_password,
+                host_in_config="lakefs",
+            )
+            rclone = get_rclone()
+            self.record_fs = TempStorage()
+            manager = Manager(rclone, source, self.record_fs)
+            manager.sync_without_validation()
+
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, sync_func)
         logger.info(
             f"Task joj.tiger.task[{self.id}] record fetched: {self.record_fs.fs.listdir('/')}"
         )
