@@ -43,6 +43,7 @@ pytest-lazy-fixture = {version = "^0.6.3", optional = true}
 python = "^3.8"
 python-benedict = "^0.24.3"
 tenacity = "^8.0.1"
+uvloop = "^0.16.0"
 watchgod = "^0.7"
 
 [tool.poetry.dev-dependencies]

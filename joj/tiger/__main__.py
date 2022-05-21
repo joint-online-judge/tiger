@@ -18,7 +18,11 @@ def main() -> None:
         exit(-1)
 
     if not settings.debug or settings.workers != 1:
-        asyncio.run(main())  # TODO: try to use uvloop
+        if platform.system() != "Windows":
+            import uvloop
+
+            asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        asyncio.run(main())
     else:
         p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
         for changes in watch("joj/tiger"):

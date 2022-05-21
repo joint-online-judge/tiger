@@ -142,4 +142,8 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    if platform.system() != "Windows":
+        import uvloop
+
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(main())

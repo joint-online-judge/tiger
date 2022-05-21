@@ -142,3 +142,7 @@ dmypy.json
 cython_debug/
 
 .vscode/settings.json
+
+/joj/*
+!/joj/tiger
+!/joj/__init__.py
