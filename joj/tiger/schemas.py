@@ -48,5 +48,4 @@ class ExecuteResult(BaseModel):
 class SubmitResult(BaseModel):
     submit_status: SubmitStatus
     compile_result: Optional[CompletedCommand]
-    lint_result: Optional[CompletedCommand]
     execute_results: Optional[List[ExecuteResult]]

@@ -14,7 +14,7 @@ from loguru import logger
 
 from joj.elephant.manager import Manager
 from joj.elephant.rclone import RClone
-from joj.elephant.schemas import Config
+from joj.elephant.schemas import Case, Config, Language
 from joj.elephant.storage import LakeFSStorage, TempStorage
 from joj.tiger import errors
 from joj.tiger.config import settings
@@ -47,7 +47,7 @@ class TigerTask:
     id: UUID
     task: Task
     task_id: str
-    problem_config: Config
+    config: Language
     problem_config_fs: OSFS
     record: Dict[str, Any]
     record_fs: OSFS
@@ -94,12 +94,19 @@ class TigerTask:
             manager.sync_without_validation()
             config_json_file = self.problem_config_fs.fs.open("config.json")
             original_config = Config(**orjson.loads(config_json_file.read()))
-            self.problem_config = Config.parse_defaults(original_config)
+            parsed_config = Config.parse_defaults(original_config)
+            for language in parsed_config.languages:
+                if language.name == self.record["language"]:
+                    self.config = language
+                    return
+            raise errors.WorkerRejectError(
+                f"unsupported language: {self.record['language']}"
+            )
 
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, sync_func)
         logger.info(
-            f"Task joj.tiger.task[{self.id}] problem config fetched: {self.problem_config}"
+            f"Task joj.tiger.task[{self.id}] problem config fetched: {self.config}"
         )
 
     async def fetch_record(self) -> None:
@@ -124,25 +131,23 @@ class TigerTask:
         )
 
     async def compile(self) -> CompletedCommand:
+        if len(self.config.compile_args) == 0:
+            logger.info(f"Task joj.tiger.task[{self.id}] compile stage skipped")
         with Runner() as runner:
-            res = await runner.async_run_command(["echo", "hello world"])
+            # TODO: add files
+            res = await runner.async_run_command(self.config.compile_args)
+        # TODO: update state to horse
         logger.info(f"Task joj.tiger.task[{self.id}] compile result: {res}")
-        # TODO: update state to horse
-        return res
-
-    async def lint(self) -> CompletedCommand:
-        with Runner() as runner:
-            res = await runner.async_run_command(["echo", "hello world"])
-        logger.info(f"Task joj.tiger.task[{self.id}] lint result: {res}")
-        # TODO: update state to horse
         return res
 
     async def execute(self) -> List[ExecuteResult]:
         res = []
         with Runner() as runner:
-            for i in range(10):
+            # TODO: add files, check status & output
+            case: Case
+            for i, case in enumerate(self.config.cases):
                 status = ExecuteStatus.accepted
-                command_res = await runner.async_run_command(["sleep", "1"])
+                command_res = await runner.async_run_command(case.execute_args)
                 exec_res = ExecuteResult(status=status, completed_command=command_res)
                 res.append(exec_res)
                 self.tasks.append(
@@ -168,12 +173,10 @@ class TigerTask:
             await asyncio.gather(self.fetch_problem_config(), self.fetch_record())
             self.judged_at = datetime.now()
             compile_result = await self.compile()
-            lint_result = await self.lint()
             execute_results = await self.execute()
             self.submit_res = SubmitResult(
                 submit_status=SubmitStatus.accepted,
                 compile_result=compile_result,
-                lint_result=lint_result,
                 execute_results=execute_results,
             )
         except errors.WorkerRejectError as e:
