@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from io import BytesIO
+from functools import lru_cache
 from typing import Any, Awaitable, Dict, List, cast
 from uuid import UUID, uuid4
 
@@ -9,12 +9,13 @@ from celery import Task
 from celery.app.task import Context
 from celery.exceptions import Reject
 from fs.osfs import OSFS
-from joj.elephant.manager import Manager
-from joj.elephant.rclone import RClone
-from joj.elephant.storage import LakeFSStorage, TempStorage
 from joj.horse_client.models import JudgerCredentials
 from loguru import logger
 
+from joj.elephant.manager import Manager
+from joj.elephant.rclone import RClone
+from joj.elephant.schemas import Config
+from joj.elephant.storage import LakeFSStorage, TempStorage
 from joj.tiger import errors
 from joj.tiger.config import settings
 from joj.tiger.horse_apis import HorseClient
@@ -28,11 +29,26 @@ from joj.tiger.schemas import (
 )
 
 
+@lru_cache
+def get_rclone() -> RClone:
+    rclone_config = f"""
+[lakefs]
+type = s3
+provider = Other
+env_auth = false
+access_key_id = {settings.lakefs_username}
+secret_access_key = {settings.lakefs_password}
+endpoint = http://{settings.lakefs_s3_domain}:{settings.lakefs_port}
+    """
+    return RClone(rclone_config)
+
+
 class TigerTask:
     id: UUID
     task: Task
     task_id: str
-    problem_config: Dict[str, Any]
+    problem_config: Config
+    problem_config_fs: OSFS
     record: Dict[str, Any]
     record_fs: OSFS
     horse_client: HorseClient
@@ -49,9 +65,6 @@ class TigerTask:
         self.horse_client = HorseClient(base_url)
         self.tasks = []
 
-    async def update_state(self) -> None:
-        self.task.update_state()  # TODO: update state to horse
-
     async def login(self) -> None:
         await self.horse_client.login()
 
@@ -64,10 +77,9 @@ class TigerTask:
         logger.info(
             f"Task joj.tiger.task[{self.id}] claimed credentials: {self.credentials}"
         )
-        await self.update_state()
 
     async def fetch_problem_config(self) -> None:
-        storage = LakeFSStorage(
+        source = LakeFSStorage(
             endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
             repo_name=self.credentials.problem_config_repo_name,
             branch_name=self.credentials.problem_config_commit_id,
@@ -75,34 +87,26 @@ class TigerTask:
             password=settings.lakefs_password,
             host_in_config="lakefs",
         )
-        file = BytesIO()
-        storage.download("config.json", file)
-        file.seek(0)
-        self.problem_config = orjson.loads(file.read())
+        rclone = get_rclone()
+        self.problem_config_fs = TempStorage()
+        manager = Manager(rclone, source, self.problem_config_fs)
+        manager.sync_without_validation()
+        config_json_file = self.problem_config_fs.fs.open("config.json")
+        self.problem_config = Config(**orjson.loads(config_json_file.read()))
         logger.info(
             f"Task joj.tiger.task[{self.id}] problem config fetched: {self.problem_config}"
         )
-        # TODO: fetch test cases
 
     async def fetch_record(self) -> None:
         source = LakeFSStorage(
             endpoint_url=f"http://{settings.lakefs_s3_domain}:{settings.lakefs_port}",
             repo_name=self.credentials.record_repo_name,
             branch_name=self.credentials.record_commit_id,
-            username=self.credentials.access_key_id,
-            password=self.credentials.secret_access_key,
+            username=settings.lakefs_username,
+            password=settings.lakefs_password,
             host_in_config="lakefs",
         )
-        rclone_config = f"""
-            [lakefs]
-            type = s3
-            provider = Other
-            env_auth = false
-            access_key_id = {self.credentials.access_key_id}
-            secret_access_key = {self.credentials.secret_access_key}
-            endpoint = http://{settings.lakefs_s3_domain}:{settings.lakefs_port}
-        """
-        rclone = RClone(rclone_config)
+        rclone = get_rclone()
         self.record_fs = TempStorage()
         manager = Manager(rclone, source, self.record_fs)
         manager.sync_without_validation()

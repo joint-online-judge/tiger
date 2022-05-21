@@ -131,7 +131,7 @@ class HorseClient:
                     stdout=exec_res.completed_command.stdout.decode("utf-8"),
                     stderr=exec_res.completed_command.stderr.decode("utf-8"),
                 ),
-                case=case_number,
+                index=case_number,
                 domain=domain_id,
                 record=record_id,
             )
