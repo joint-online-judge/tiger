@@ -93,7 +93,8 @@ class TigerTask:
             manager = Manager(rclone, source, self.problem_config_fs)
             manager.sync_without_validation()
             config_json_file = self.problem_config_fs.fs.open("config.json")
-            self.problem_config = Config(**orjson.loads(config_json_file.read()))
+            original_config = Config(**orjson.loads(config_json_file.read()))
+            self.problem_config = Config.parse_defaults(original_config)
 
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, sync_func)
