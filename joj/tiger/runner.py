@@ -477,6 +477,11 @@ class Runner:
             raise new_error from original_error
         raise new_error
 
+    def add_directory(self, directory: str) -> None:
+        subprocess.check_call(
+            ["docker", "cp", "-", self.name + ":" + RUNNER_WORKING_DIR_NAME]
+        )
+
     def add_files(
         self, *filenames: str, owner: str = RUNNER_USERNAME, read_only: bool = False
     ) -> None:

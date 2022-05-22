@@ -8,14 +8,13 @@ import orjson
 from celery import Task
 from celery.app.task import Context
 from celery.exceptions import Reject
-from fs.osfs import OSFS
 from joj.horse_client.models import JudgerCredentials
 from loguru import logger
 
 from joj.elephant.manager import Manager
 from joj.elephant.rclone import RClone
 from joj.elephant.schemas import Case, Config, Language
-from joj.elephant.storage import LakeFSStorage, TempStorage
+from joj.elephant.storage import LakeFSStorage, Storage, TempStorage
 from joj.tiger import errors
 from joj.tiger.config import settings
 from joj.tiger.horse_apis import HorseClient
@@ -48,9 +47,9 @@ class TigerTask:
     task: Task
     task_id: str
     config: Language
-    problem_config_fs: OSFS
+    config_storage: Storage
     record: Dict[str, Any]
-    record_fs: OSFS
+    record_storage: Storage
     horse_client: HorseClient
     credentials: JudgerCredentials
     tasks: List[Awaitable[Any]]
@@ -89,10 +88,14 @@ class TigerTask:
                 host_in_config="lakefs",
             )
             rclone = get_rclone()
-            self.problem_config_fs = TempStorage()
-            manager = Manager(rclone, source, self.problem_config_fs)
+            self.config_storage = TempStorage()
+            manager = Manager(rclone, source, self.config_storage)
             manager.sync_without_validation()
-            config_json_file = self.problem_config_fs.fs.open("config.json")
+            logger.info(
+                f"Task joj.tiger.task[{self.id}] config fetched: "
+                f"{self.config_storage.fs.listdir('/')}"
+            )
+            config_json_file = self.config_storage.fs.open("config.json")
             original_config = Config(**orjson.loads(config_json_file.read()))
             parsed_config = Config.parse_defaults(original_config)
             for language in parsed_config.languages:
@@ -120,15 +123,16 @@ class TigerTask:
                 host_in_config="lakefs",
             )
             rclone = get_rclone()
-            self.record_fs = TempStorage()
-            manager = Manager(rclone, source, self.record_fs)
+            self.record_storage = TempStorage()
+            manager = Manager(rclone, source, self.record_storage)
             manager.sync_without_validation()
+            logger.info(
+                f"Task joj.tiger.task[{self.id}] record fetched: "
+                f"{self.record_storage.fs.listdir('/')}"
+            )
 
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, sync_func)
-        logger.info(
-            f"Task joj.tiger.task[{self.id}] record fetched: {self.record_fs.fs.listdir('/')}"
-        )
 
     async def compile(self) -> CompletedCommand:
         if len(self.config.compile_args) == 0:
