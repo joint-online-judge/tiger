@@ -16,7 +16,7 @@ RUNNER_HOME_DIR_NAME = "/root"
 RUNNER_WORKING_DIR_NAME = RUNNER_HOME_DIR_NAME
 RUNNER_USERNAME = "root"
 RUNNER_DOCKER_IMAGE = os.environ.get(
-    "RUNNER_DOCKER_IMAGE", "jameslp/ag-ubuntu-16:latest"
+    "RUNNER_DOCKER_IMAGE", "ghcr.io/joint-online-judge/buildpack-deps:focal"
 )
 
 RUNNER_PIDS_LIMIT = int(os.environ.get("RUNNER_PIDS_LIMIT", 512))
