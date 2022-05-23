@@ -177,7 +177,7 @@ class Runner:
             "run",
             "--name=" + self.name,
             "-i",  # Run in interactive mode (for input redirection)
-            "-t",  # Allocate psuedo tty
+            "-t",  # Allocate pseudo tty
             "-d",  # Detached
             "--privileged",
             "--pids-limit",

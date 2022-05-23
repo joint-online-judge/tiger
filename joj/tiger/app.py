@@ -41,7 +41,7 @@ def setup_celery_logging(*args: Any, **kwargs: Any) -> None:
     logging.basicConfig(
         handlers=[InterceptHandler()],
         level=logging.INFO,
-        # FIXME: debug log from celery may destory some our logs
+        # FIXME: debug log from celery may destroy some our logs
         # level=logging.DEBUG if settings.debug else logging.INFO,
     )
 
