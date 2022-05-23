@@ -27,7 +27,7 @@ type completedCommand struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("usage: main <command>")
+		fmt.Println("usage: " + os.Args[0] + " <command>")
 		os.Exit(1)
 	}
 	// u, err := user.Lookup(os.Getenv("SUDO_USER"))

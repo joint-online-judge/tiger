@@ -217,7 +217,7 @@ class Runner:
                 "..",
                 "..",
                 "runner",
-                "main",
+                "runner",
             )
             subprocess.run(
                 [
