@@ -59,7 +59,12 @@ class ToolchainsConfig(BaseModel):
         for queue in self.queues.values():
             for image in queue.images:
                 unique_images.add(image)
-        await asyncio.gather(*[self.images[image].pull() for image in unique_images])
+        try:
+            await asyncio.gather(
+                *[self.images[image].pull() for image in unique_images]
+            )
+        except aiodocker.exceptions.DockerError as e:
+            logger.error(f"docker pull failed: {e}")
 
     def generate_queues(self) -> List[str]:
         result = []

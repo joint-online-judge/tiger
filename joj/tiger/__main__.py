@@ -25,7 +25,8 @@ def main() -> None:
             asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
         asyncio.run(main())
     else:
-        subprocess.run(["make", "-C", "runner"])
+        # TODO: auto rebuild runner
+        # subprocess.run(["make", "-C", "runner"])
         p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
         for changes in chain(watch("joj/tiger"), watch("runner")):
             print(
@@ -33,7 +34,7 @@ def main() -> None:
             )
             p.terminate()
             p.poll()
-            subprocess.run(["make", "-C", "runner"])
+            # subprocess.run(["make", "-C", "runner"])
             p = subprocess.Popen([sys.executable, "-m", "joj.tiger.app"])
 
 
