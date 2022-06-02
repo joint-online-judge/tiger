@@ -116,10 +116,7 @@ async def startup(settings: AllSettings, *, test: bool = False) -> List[str]:
         ]
         if platform.system() == "Windows":
             argv += ["-P", "solo"]
-        worker_name = settings.horse_username
-        if settings.worker_name:
-            worker_name = settings.worker_name
-        if worker_name:
+        if worker_name := settings.horse_username:
             argv += ["-n", worker_name]
         if not test:
             await toolchains_config.pull_images()
@@ -129,6 +126,7 @@ async def startup(settings: AllSettings, *, test: bool = False) -> List[str]:
     _, argv = await asyncio.gather(
         startup_event(), generate_celery_argv(settings, test=test)
     )
+    logger.debug(f"celery argv: {argv}")
     return argv
 
 

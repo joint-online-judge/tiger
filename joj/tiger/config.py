@@ -15,7 +15,6 @@ from pydantic_universal_settings import (
 class BaseConfig(BaseSettings):
     debug: bool = False
     workers: int = 1
-    worker_name: str = ""
 
     # horse config
     horse_username: str = ""
