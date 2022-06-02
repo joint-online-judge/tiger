@@ -116,9 +116,12 @@ async def startup(settings: AllSettings, *, test: bool = False) -> List[str]:
         ]
         if platform.system() == "Windows":
             argv += ["-P", "solo"]
+        worker_name = settings.horse_username
+        if settings.worker_name:
+            worker_name = settings.worker_name
+        if worker_name:
+            argv += ["-n", worker_name]
         if not test:
-            if settings.worker_name:
-                argv += ["-n", settings.worker_name]
             await toolchains_config.pull_images()
             argv.extend(["-Q", ",".join(toolchains_config.generate_queues())])
         return argv
