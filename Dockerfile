@@ -27,7 +27,7 @@ COPY pyproject.toml poetry.lock README.md /root/
 COPY joj/tiger/__init__.py /root/joj/tiger/
 COPY runner/runner /root/runner/runner
 COPY toolchains /root/toolchains
-RUN --mount=type=cache,target=/root/.cache if [ -n "$PYTEST" ]; then poetry install -E test; else poetry install --no-dev; fi
+RUN --mount=type=cache,target=/root/.cache if [ -n "$PYTEST" ]; then poetry install -vvv -E test; else poetry install -vvv --no-dev; fi
 COPY . /root
 
 CMD python3 -m joj.tiger
