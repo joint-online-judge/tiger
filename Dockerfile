@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
 # install poetry
 ARG PYPI_MIRROR
 RUN if [ -n "$PYPI_MIRROR" ]; then pip config set global.index-url $PYPI_MIRROR; fi
-RUN --mount=type=cache,target=/root/.cache pip install -U poetry
+RUN --mount=type=cache,target=/root/.cache pip install poetry
 
 # create virtualenv
 ENV VIRTUAL_ENV=/root/.venv
@@ -27,7 +27,7 @@ COPY pyproject.toml poetry.lock README.md /root/
 COPY joj/tiger/__init__.py /root/joj/tiger/
 COPY runner/runner /root/runner/runner
 COPY toolchains /root/toolchains
-RUN --mount=type=cache,target=/root/.cache if [ -n "$PYTEST" ]; then poetry install -vvv -E test; else poetry install -vvv --no-dev; fi
+RUN --mount=type=cache,target=/root/.cache if [ -n "$PYTEST" ]; then poetry install -vvv -E test; else poetry install -vvv --only main; fi
 COPY . /root
 
 CMD python3 -m joj.tiger

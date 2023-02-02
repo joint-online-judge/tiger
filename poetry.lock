@@ -1449,7 +1449,7 @@ version = "1.0.0"
 aiohttp = "*"
 certifi = "*"
 python-dateutil = "*"
-resolved_reference = "1e5c4a536d6cc448abb7972f891847f3f358a85d"
+reference = "master"
 six = ">=1.10"
 type = "git"
 url = "https://github.com/joint-online-judge/horse-python-client.git"
@@ -1511,7 +1511,7 @@ pydantic = {version = "^1.8.2", extras = ["dotenv"]}
 rarfile = "^4.0"
 
 [package.extras]
-resolved_reference = "e66f7b40de12b85efce8513760413765cc853e61"
+reference = "master"
 test = ["asynctest (>=0.13.0,<0.14.0)", "coverage (>=5.5,<6.0)", "lakefs-client (>=0.55.0,<0.56.0)", "pytest (>=6.2.5,<7.0.0)", "pytest-asyncio (>=0.15.1,<0.16.0)", "pytest-cov (>=2.12.1,<3.0.0)", "pytest-depends (>=1.0.1,<2.0.0)", "pytest-lazy-fixture (>=0.6.3,<0.7.0)"]
 type = "git"
 url = "https://github.com/joint-online-judge/elephant.git"
