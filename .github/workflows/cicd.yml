@@ -111,12 +111,12 @@ jobs:
                   cd joj-deploy-lite
                   bash ./start.sh lite
                   sleep 20
-                  docker exec rabbitmq rabbitmqctl list_vhosts
+                  docker exec joj2-rabbitmq rabbitmqctl list_vhosts
                   docker ps
             - name: Check rabbitmq docker logs
               if: always()
               run: |
-                  docker logs rabbitmq
+                  docker logs joj2-rabbitmq
             - name: Test and Generate coverage report
               if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
               run: |
