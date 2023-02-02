@@ -28,8 +28,8 @@ version = "0.1.0"
 aiodocker = "^0.21.0"
 aioredlock = "^0.7.2"
 celery = {extras = ["redis"], version = "^5.2.1"}
-horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git"}
-joj-elephant = {git = "https://github.com/joint-online-judge/elephant.git"}
+horse-python-client = {git = "https://github.com/joint-online-judge/horse-python-client.git", rev = "master"}
+joj-elephant = {git = "https://github.com/joint-online-judge/elephant.git", rev = "master"}
 loguru = "^0.5.3"
 msgpack = "^1.0.3"
 orjson = "^3.6.8"
