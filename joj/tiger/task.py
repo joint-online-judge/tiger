@@ -188,7 +188,7 @@ class TigerTask:
                 execute_results=execute_results,
             )
         except errors.WorkerRejectError as e:
-            raise Reject(e.error_msg)
+            raise Reject(e.error_msg) from None
         except errors.RetryableError:
             self.task.retry(countdown=5)
         except Exception as e:
