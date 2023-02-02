@@ -95,10 +95,13 @@ class TigerTask:
                 f"Task joj.tiger.task[{self.id}] config fetched: "
                 f"{self.config_storage.fs.listdir('/')}"
             )
-            config_json_file = self.config_storage.fs.open("config.json")
-            original_config = Config(**orjson.loads(config_json_file.read()))
-            parsed_config = Config.parse_defaults(original_config)
-            for language in parsed_config.languages:
+            try:
+                config_json_file = self.config_storage.fs.open("config.json")
+                original_config = Config(**orjson.loads(config_json_file.read()))
+                config = Config.parse_defaults(original_config)
+            except Exception:
+                config = Config.generate_default_value()
+            for language in config.languages:
                 if language.name == self.record["language"]:
                     self.config = language
                     return
