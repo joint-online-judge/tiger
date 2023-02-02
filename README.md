@@ -1,7 +1,7 @@
 # JOJ Tiger
 
 [![GitHub](https://img.shields.io/github/license/joint-online-judge/tiger)](https://github.com/joint-online-judge/tiger/blob/master/LICENSE)
-[![CI/CD](https://img.shields.io/github/workflow/status/joint-online-judge/tiger/cicd/master)](https://github.com/joint-online-judge/tiger/actions/workflows/ci.yml)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/joint-online-judge/tiger/cicd.yml?branch=master)](https://github.com/joint-online-judge/tiger/actions/workflows/ci.yml)
 [![GitHub branch checks state](https://img.shields.io/github/checks-status/joint-online-judge/tiger/master)](https://github.com/joint-online-judge/tiger)
 [![Codacy Badge](https://img.shields.io/codacy/grade/03b06b5149c6449196fca93a39b25c68)](https://www.codacy.com/gh/joint-online-judge/tiger/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=joint-online-judge/tiger&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://img.shields.io/codacy/coverage/03b06b5149c6449196fca93a39b25c68)](https://www.codacy.com/gh/joint-online-judge/tiger/dashboard?utm_source=github.com&utm_medium=referral&utm_content=joint-online-judge/tiger&utm_campaign=Badge_Coverage)
