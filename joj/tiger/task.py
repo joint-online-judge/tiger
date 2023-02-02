@@ -101,6 +101,7 @@ class TigerTask:
                 config = Config.parse_defaults(original_config)
             except Exception:
                 config = Config.generate_default_value()
+            logger.debug(f"parsed config: {config}")
             for language in config.languages:
                 if language.name == self.record["language"]:
                     self.config = language
