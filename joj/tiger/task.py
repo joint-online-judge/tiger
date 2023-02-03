@@ -7,7 +7,6 @@ from uuid import UUID, uuid4
 import orjson
 from celery import Task
 from celery.app.task import Context
-from celery.exceptions import Reject
 from joj.horse_client.models import JudgerCredentials
 from loguru import logger
 
@@ -188,7 +187,9 @@ class TigerTask:
                 execute_results=execute_results,
             )
         except errors.WorkerRejectError as e:
-            raise Reject(e.error_msg) from None
+            logger.exception(e)
+            # fail the task
+            self.submit_res = SubmitResult(submit_status=SubmitStatus.system_error)
         except errors.RetryableError:
             self.task.retry(countdown=5)
         except Exception as e:

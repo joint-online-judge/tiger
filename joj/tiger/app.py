@@ -80,14 +80,9 @@ async def submit_task(
     self: Task, record_dict: Dict[str, Any], base_url: str
 ) -> Dict[str, Any]:
     task = TigerTask(self, record_dict, base_url)
-    try:
-        submit_result = await task.submit()
-        # logger.info(f"task[{task.id}] submit result: {submit_result}")
-    except Exception as e:
-        logger.exception("joj.tiger.task task.submit() error")
-        raise e
-    finally:
-        await task.clean()
+    submit_result = await task.submit()
+    logger.info(f"task[{task.id}] submit result: {submit_result}")
+    await task.clean()
     return submit_result.json()
 
 
