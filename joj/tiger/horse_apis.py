@@ -1,6 +1,8 @@
 import asyncio
-from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict, TypeVar, cast
+
+from loguru import logger
+from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
 from joj.horse_client.api import AuthApi, JudgeApi
 from joj.horse_client.api_client import ApiClient, Configuration
@@ -15,12 +17,9 @@ from joj.horse_client.models import (
     RecordCaseSubmit,
     RecordSubmit,
 )
-from loguru import logger
-from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
-
 from joj.tiger import errors
 from joj.tiger.config import settings
-from joj.tiger.schemas import ExecuteResult, SubmitResult
+from joj.tiger.schemas import ExecuteResult
 
 T = TypeVar("T")
 
@@ -126,7 +125,7 @@ class HorseClient:
                     state=exec_res.status._name_,
                     score=10,
                     time_ms=exec_res.completed_command.time // (1000 * 1000),
-                    memory_kb=exec_res.completed_command.memory // (2 ** 10),
+                    memory_kb=exec_res.completed_command.memory // (2**10),
                     return_code=exec_res.completed_command.return_code,
                     stdout=exec_res.completed_command.stdout.decode("utf-8"),
                     stderr=exec_res.completed_command.stderr.decode("utf-8"),
@@ -151,8 +150,7 @@ class HorseClient:
         self,
         domain_id: str,
         record_id: str,
-        submit_res: SubmitResult,
-        judged_at: datetime,
+        record_submit: RecordSubmit,
     ) -> None:
         judge_api = JudgeApi(self.client)
         logger.debug(
@@ -162,10 +160,7 @@ class HorseClient:
         try:
             response: EmptyResp = await self._retry(
                 judge_api.v1_submit_record_by_judger,
-                body=RecordSubmit(
-                    state=submit_res.submit_status._name_,
-                    judged_at=judged_at.isoformat(),
-                ),
+                body=record_submit,
                 domain=domain_id,
                 record=record_id,
             )

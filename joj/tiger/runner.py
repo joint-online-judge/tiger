@@ -412,7 +412,7 @@ class Runner:
                 return result
             except subprocess.TimeoutExpired:
                 return CompletedCommand(
-                    return_code=None,
+                    return_code=-1,
                     timed_out=True,
                     stdout=b"",
                     stderr=b"The command exceeded the fallback timeout. "

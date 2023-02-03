@@ -7,13 +7,13 @@ from uuid import UUID, uuid4
 import orjson
 from celery import Task
 from celery.app.task import Context
-from joj.horse_client.models import JudgerCredentials
 from loguru import logger
 
 from joj.elephant.manager import Manager
 from joj.elephant.rclone import RClone
 from joj.elephant.schemas import Case, Config, Language
 from joj.elephant.storage import LakeFSStorage, Storage, TempStorage
+from joj.horse_client.models import JudgerCredentials, RecordSubmit
 from joj.tiger import errors
 from joj.tiger.config import settings
 from joj.tiger.horse_apis import HorseClient
@@ -21,9 +21,9 @@ from joj.tiger.runner import Runner
 from joj.tiger.schemas import (
     CompletedCommand,
     ExecuteResult,
-    ExecuteStatus,
+    RecordCaseResult,
+    RecordState,
     SubmitResult,
-    SubmitStatus,
 )
 
 
@@ -152,8 +152,8 @@ class TigerTask:
         with Runner() as runner:
             # TODO: add files, check status & output
             case: Case
-            for i, case in enumerate(self.config.cases):
-                status = ExecuteStatus.accepted
+            for i, case in enumerate(self.config.cases or []):
+                status = RecordCaseResult.accepted
                 command_res = await runner.async_run_command(case.execute_args)
                 exec_res = ExecuteResult(status=status, completed_command=command_res)
                 res.append(exec_res)
@@ -182,30 +182,40 @@ class TigerTask:
             compile_result = await self.compile()
             execute_results = await self.execute()
             self.submit_res = SubmitResult(
-                submit_status=SubmitStatus.accepted,
+                submit_status=RecordState.accepted,
                 compile_result=compile_result,
                 execute_results=execute_results,
             )
         except errors.WorkerRejectError as e:
             logger.exception(e)
             # fail the task
-            self.submit_res = SubmitResult(submit_status=SubmitStatus.system_error)
+            self.submit_res = SubmitResult(submit_status=RecordState.rejected)
         except errors.RetryableError:
             self.task.retry(countdown=5)
         except Exception as e:
             logger.exception(e)
             # fail the task
-            self.submit_res = SubmitResult(submit_status=SubmitStatus.system_error)
+            self.submit_res = SubmitResult(submit_status=RecordState.rejected)
 
     async def submit(self) -> SubmitResult:
         await self.run()
+        record_submit = RecordSubmit(
+            state=str(self.submit_res.submit_status),
+            score=0,  # TODO: calculate score
+            time_ms=sum(
+                item.completed_command.time
+                for item in self.submit_res.execute_results or []
+            ),
+            memory_kb=sum(
+                item.completed_command.memory
+                for item in self.submit_res.execute_results or []
+            ),
+            judged_at=self.judged_at.isoformat(),
+        )
         self.tasks.append(
             asyncio.create_task(
                 self.horse_client.submit_record(
-                    domain_id=self.record["domain_id"],
-                    record_id=self.record["id"],
-                    submit_res=self.submit_res,
-                    judged_at=self.judged_at,
+                    self.record["domain_id"], self.record["id"], record_submit
                 )
             )
         )
