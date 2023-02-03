@@ -18,7 +18,7 @@ jobs:
                   echo $ELEPHANT_REF
                   ELEPHANT_URL_LINE_NO=$(awk '/joint-online-judge\/elephant.git/{ print NR; exit }' poetry.lock)
                   echo $ELEPHANT_URL_LINE_NO
-                  ELEPHANT_REF_LINE_NO=$(($ELEPHANT_URL_LINE_NO-3))
+                  ELEPHANT_REF_LINE_NO=$(($ELEPHANT_URL_LINE_NO-2))
                   echo $ELEPHANT_REF_LINE_NO
                   sed -i "${ELEPHANT_REF_LINE_NO}s/.*/resolved_reference = \"$ELEPHANT_REF\"/" poetry.lock
                   git --no-pager diff
@@ -28,7 +28,7 @@ jobs:
                   echo $HORSE_PYTHON_CLIENT_REF
                   HORSE_PYTHON_CLIENT_URL_LINE_NO=$(awk '/joint-online-judge\/horse-python-client.git/{ print NR; exit }' poetry.lock)
                   echo $HORSE_PYTHON_CLIENT_URL_LINE_NO
-                  HORSE_PYTHON_CLIENT_REF_LINE_NO=$(($HORSE_PYTHON_CLIENT_URL_LINE_NO-3))
+                  HORSE_PYTHON_CLIENT_REF_LINE_NO=$(($HORSE_PYTHON_CLIENT_URL_LINE_NO-2))
                   echo $HORSE_PYTHON_CLIENT_REF_LINE_NO
                   sed -i "${HORSE_PYTHON_CLIENT_REF_LINE_NO}s/.*/resolved_reference = \"$HORSE_PYTHON_CLIENT_REF\"/" poetry.lock
                   git --no-pager diff
